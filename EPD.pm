@@ -562,6 +562,9 @@ sub movetype {
         }
         @result = ( "KR", $to, $from );
     }
+    elsif ($move =~ /^([2-7])([a-h][1-8])(?:\+|\#)?$/ ) {
+        @result = ( "P", $2 );
+    }
     elsif ( $move =~ /^([a-h][1-8])(?:\+|\#)?$/ ) {
         @result = ( "P", $1 );
     }
@@ -1223,6 +1226,8 @@ a module named after a swamp?!
 =item oo-ify support variables.
 
 =item Allow font map customization.
+
+=item Add taxonomy - given move list come up with ECO, NIC and descriptive opening name.
 
 =back
 
