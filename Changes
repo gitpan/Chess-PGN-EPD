@@ -53,3 +53,5 @@ Revision history for Perl extension Chess::PGN::EPD.
 	- fold in patch for 'Malformed UTF-8 character (byte 0xfe) in ord...' problem found
 	  by Cyril Malkov - patch is his too!
 	- add better test.pl file
+0.14  Mon Jun 24 17:00:36 2002
+	- re-synchronize Makefile.PL to use the one with all of the corrections in it
