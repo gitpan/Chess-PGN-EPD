@@ -4,3 +4,6 @@ Makefile.PL
 MANIFEST
 README
 test.pl
+db\ECO
+db\NIC
+db\Opening

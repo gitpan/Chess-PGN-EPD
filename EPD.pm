@@ -4,16 +4,45 @@ use 5.006;
 use strict;
 use warnings;
 use Chess::PGN::Moves;
+use DB_File;
 
 require Exporter;
 
+my $db_path;
+my (%hECO,%hNIC,%hOpening);
+my %hash = (ECO => \%hECO,
+    NIC => \%hNIC,
+    Opening => \%hOpening);
+
+INIT {
+    foreach  (@INC) {
+        if (-d "$_/Chess/PGN/db") {
+            $db_path = "$_/Chess/PGN/db/";
+            last;
+        }
+    }
+    tie %hECO, "DB_File", $db_path . 'ECO', O_RDWR, 0640, $DB_HASH
+        or die "Couldn't open '${db_path}ECO': $!\n";
+    tie %hNIC, "DB_File", $db_path . 'NIC', O_RDWR, 0640, $DB_HASH
+        or die "Couldn't open '${db_path}NIC': $!\n";
+    tie %hOpening, "DB_File", $db_path . 'Opening', O_RDWR, 0640, $DB_HASH
+        or die "Couldn't open '${db_path}Opening': $!\n";
+}
+
+END {
+    untie %hECO;
+    untie %hNIC;
+    untie %hOpening;
+}
+
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
+    &epdcode
     &epdset
     &epdstr
 	&epdlist
 );
-our $VERSION = '0.04';
+our $VERSION = '0.06';
 
 my %board;
 my $Kc;
@@ -203,6 +232,19 @@ my %FontMap = (
         DoubleBottomLegend => '',
     },
 );
+
+sub epdcode {
+    my $file = shift;
+    my $epd = shift;
+    my $code;
+    my $h = $hash{$file} or die "Unknown option '$file': $!\n";
+
+    foreach  (@{$epd}) {
+        $code = %{$h}->{$_};
+        last if $code;
+    }
+    return ($code or 'Unknown');
+}
 
 sub epdset {
     if (my $epd = shift) {
@@ -776,8 +818,51 @@ B<OR>
  my $position = 'rnbqkb1r/ppp1pppp/5n2/3P4/8/8/PPPP1PPP/RNBQKBNR w KQkq -';
  print join("\n",epdstr(epd => $position,type => 'latex'));
 
+B<OR>
+
+ #!/usr/bin/perl
+ #
+ # epd3.pl -- Subroutine version to be added to EPD
+ #
+ use strict;
+ use warnings;
+ use Chess::PGN::Parse;
+ use Chess::PGN::EPD;
+ 
+ if ($ARGV[0]) {
+     my $pgn = new Chess::PGN::Parse($ARGV[0]) or die "Can't open $ARGV[0]: $!\n";
+     while ($pgn->read_game()) {
+         my @epd;
+ 
+         $pgn->parse_game();
+         @epd = reverse epdlist( @{$pgn->moves()} );
+         print '[ECO,"',epdcode('ECO',\@epd),"\"]\n";
+         print '[NIC,"',epdcode('NIC',\@epd),"\"]\n";
+         print '[Opening,"',epdcode('Opening',\@epd),"\"]\n";
+     }
+ }
+
 =head1 DESCRIPTION
 
+=head2 epdcode(I<code>,I<epdlistref>)
+
+Determines the requested code given a list of B<epd> strings in reverse order.
+Allowed codes are:
+
+=over
+
+=item 'ECO' from The Encyclopedia of Chess Openings.
+
+=item 'NIC' from New in Chess.
+
+=item 'Opening' Traditional Opening name in English.
+
+=back
+
+At the moment, this routine depends on three Berekely DB files installed along with
+the module. On demand other database formats may be implemented. The 'ToDo' list
+also mentions the possibility of extending the databases, although that might come in
+the form of a 'How To' rather than any code solution.
 
 =head2 epdset(I<epd>)
 
@@ -1199,6 +1284,8 @@ a module named after a swamp?!
 
 =over
 
+=item epdcode - given a list of EPD strings, return the requested code or 'unknown'.
+
 =item epdset - allows the user to specifiy an initial position.
 
 =item epdstr - given an EPD string convert it to the specified string representation.
@@ -1211,9 +1298,11 @@ a module named after a swamp?!
 
 =over
 
-=item CHESS::PGN::MOVES
+=item DB_File
 
-=item CHESS::PGN::PGNParser (useless without, not actually required though...)
+=item Chess::PGN::MOVES
+
+=item Chess::PGN::Parse (useless without, not actually required though...)
 
 =back
 

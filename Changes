@@ -1,15 +1,15 @@
 Revision history for Perl extension Chess::PGN::EPD.
 
-0.01  Fri Feb  8 11:52:56 2002
+0.01  Fri Feb 08 11:52:56 2002
 	- original version; created by h2xs 1.21 with options
 		-A -X Chess::PGN::EPD
-0.02  Fri Feb  8 17:06:00 2002
+0.02  Fri Feb 08 17:06:00 2002
         - documentation patch, correct pod format in SYNOPSIS section
-0.03  Fri Feb  8 23:32:17 2002
+0.03  Fri Feb 08 23:32:17 2002
         - added epdset; allows user to specify the initial position for a game
 	- patched bug associated with $debug parameter of epdlist (didn't work
 	  since @moves eats all of @_, $debug was always undef)
-0.04  Sat Feb  9 00:49:55 2002
+0.04  Sat Feb 09 00:49:55 2002
         - documentation patch, correct reference to Chess::PGN::Parse (was
 	  Chess::PGN::PGNParser)
       Fri Feb 15 06:00:08 2002
@@ -20,3 +20,13 @@ Revision history for Perl extension Chess::PGN::EPD.
 	  was a need to dis-ambiguate the move
       Sun Feb 17 13:47:56 2002
         - documentation patch, remove dummy comment from README
+0.06  Wed Feb 20 14:23:00 2002
+        - jump from 0.04 to 0.06 because I forgot to change the $VERSION in the last upload
+	- made necessary changes to Makefile.pl in order to install Berkeley DB files used
+	  by epdcode()
+	- added epdcode; converts epd array to one of ECO code, NIC code or Opening name
+      Thu Feb 21 07:24:28 2002
+        - documentation patch, CHESS::PGN -> Chess::PGN, PGN::PGNParser -> PGN::Parse
+	- patched Makefile.pl, install:: -> install ::, spaces are important!
+	- added code to find DB files at BEGIN{}
+
