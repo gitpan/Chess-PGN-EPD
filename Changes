@@ -35,3 +35,5 @@ Revision history for Perl extension Chess::PGN::EPD.
 	- removed 'taxonomy' from TODO list
 	- add 'palview' to epdstr type
 	- add 'text' to epdstr type
+0.08  Wed Mar 20 19:55:48 2002
+        - add %font2map lookup table

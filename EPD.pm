@@ -41,8 +41,39 @@ our @EXPORT = qw(
     &epdset
     &epdstr
 	&epdlist
+    %font2map
 );
-our $VERSION = '0.07';
+our $VERSION = '0.08';
+
+our %font2map = (
+    'Chess Cases' => 'leschemelle',
+    'Chess Adventurer' => 'marroquin',
+    'Chess Alfonso-X' => 'marroquin',
+    'Chess Alpha' => 'bentzen1',
+    'Chess Berlin' => 'bentzen2',
+    'Chess Condal' => 'marroquin',
+    'Chess Harlequin' => 'marroquin',
+    'Chess Kingdom' => 'marroquin',
+    'Chess Leipzig' => 'marroquin',
+    'Chess Line' => 'marroquin',
+    'Chess Lucena' => 'marroquin',
+    'Chess Magnetic' => 'marroquin',
+    'Chess Mark' => 'marroquin',
+    'Chess Marroquin' => 'marroquin',
+    'Chess Maya' => 'marroquin',
+    'Chess Mediaeval' => 'marroquin',
+    'Chess Merida' => 'marroquin',
+    'Chess Millennia' => 'marroquin',
+    'Chess Miscel' => 'marroquin',
+    'Chess Montreal' => 'katch',
+    'Chess Motif' => 'marroquin',
+    'Chess Plain' => 'hickey',
+    'Chess Regular' => 'scott1',
+    'Chess Usual' => 'scott2',
+    'Chess Utrecht' => 'bodlaender',
+    'Tilburg' => 'tilburg',
+    'Traveller Standard V3' => 'cowderoy',
+);
 
 my %board;
 my $Kc;
