@@ -5,3 +5,7 @@ Revision history for Perl extension Chess::PGN::EPD.
 		-A -X Chess::PGN::EPD
 0.02  Fri Feb  8 17:06:00 2002
         - documentation patch, correct pod format in SYNOPSIS section
+0.03  Fri Feb  8 23:32:17 2002
+        - added epdstr; allows user to specify the initial position for a game
+	- patched bug associated with $debug parameter of epdlist (didn't work
+	  since @moves eats all of @_, $debug was always undef)

@@ -10,44 +10,109 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
 	&epdlist
+    &epdstr
+    &epdset
 );
-our $VERSION = '0.02';
+our $VERSION = '0.03';
+
+my %board;
+my $Kc;
+my $Qc;
+my $kc;
+my $qc;
+my $w;
+
+sub epdset {
+    if (my $epd = shift) {
+        my @array = split(/\/|\s/,$epd);
+        my $file = '8';
+
+        %board = ();
+        $Kc = 0;
+        $Qc = 0;
+        $kc = 0;
+        $qc = 0;
+        foreach  (0..7) {
+            $array[$_] =~ s/(\d+)/'_' x $1/ge;
+            my @row = split('',$array[$_]);
+            my $rank = 'a';
+            foreach my $piece (@row) {
+                $board{"$rank$file"} = $piece if $piece ne '_';
+                $rank++;
+            }
+            $file--;
+        }
+        $w = ($array[8] eq 'w');
+        foreach  (split('',$array[9])) {
+            if ($_ eq 'K') {
+                $Kc = 1;
+            }
+            elsif ($_ eq 'Q') {
+                $Qc = 1;
+            }
+            elsif ($_ eq 'k') {
+                $kc = 1;
+            }
+            elsif ($_ eq 'q') {
+                $qc = 1;
+            }
+        }
+    }
+    else {
+        %board = qw(
+          a1 R a2 P a7 p a8 r 
+          b1 N b2 P b7 p b8 n 
+          c1 B c2 P c7 p c8 b 
+          d1 Q d2 P d7 p d8 q 
+          e1 K e2 P e7 p e8 k 
+          f1 B f2 P f7 p f8 b 
+          g1 N g2 P g7 p g8 n 
+          h1 R h2 P h7 p h8 r 
+        );
+        $w  = 1;
+        $Kc = 1;
+        $Qc = 1;
+        $kc = 1;
+        $qc = 1;
+    }
+}
+
+sub epdstr {
+}
 
 sub epdlist {
-    my ( @moves, $debug ) = @_;
-    my %board = qw(
-      a1 R a2 P a7 p a8 r 
-      b1 N b2 P b7 p b8 n 
-      c1 B c2 P c7 p c8 b 
-      d1 Q d2 P d7 p d8 q 
-      e1 K e2 P e7 p e8 k 
-      f1 B f2 P f7 p f8 b 
-      g1 N g2 P g7 p g8 n 
-      h1 R h2 P h7 p h8 r 
-    );
-    my $w  = 1;
-    my $Kc = 1;
-    my $Qc = 1;
-    my $kc = 1;
-    my $qc = 1;
+    my @moves = @_;
+    my $debug = ($moves[-1] eq '1');
     my @epdlist;
     my $lineno = 1;
 
+    if ($debug) {
+        pop @moves;
+        if (%board) {
+            print "\%board initialized\n";
+        }
+        else {
+            print "\%board uninitialized\n";
+        }
+    }
+    epdset() if !%board;
     foreach (@moves) {
         if ($_) {
             my ( $piece, $to, $from, $promotion ) = movetype( $w, $_ );
-            my $ep = "-";
             my $enpassant;
-
-            print "Move[$lineno]='$_'" if $debug;
-            $lineno++ if $debug;
-            if ($piece) {
-                print ", piece='$piece'" if $debug;
-                print ", to='$to'" if $to and $debug;
-                print ", from='$from'" if $from and $debug;
-                print ", promotion='$promotion'" if $promotion and $debug;
+            
+            my $ep = '-';
+            if ($debug) {
+                print "Move[$lineno]='$_'";
+                $lineno++;
+                if ($piece) {
+                    print ", piece='$piece'";
+                    print ", to='$to'" if $to;
+                    print ", from='$from'" if $from;
+                    print ", promotion='$promotion'" if $promotion;
+                }
+                print "\n";
             }
-            print "\n" if $debug;
 
             if ( $piece eq "P" ) {
                 $piece     = "p" if not $w;
@@ -179,18 +244,19 @@ sub epdlist {
                     }
                 }
                 if ( not( $from or $to ) ) {
-                    exit(0);
+                    die "Both from and to undefined\n";
                 }
                 ( $board{$to}, $board{$from} ) = ( $board{$from}, undef );
                 print "\@piece_at=", join ( ",", @piece_at ), "\n" if $debug;
                 print "$piece moved from $from to $to\n" if $debug;
                 push ( @epdlist, epd( $w, $Kc, $Qc, $kc, $qc, $ep, %board ) );
                 print "$epdlist[-1]\n" if $debug;
-                exit(0) if not $from;
+                die "From undefined\n" if not $from;
             }
             $w ^= 1;
         }
     }
+    %board = ();
     return @epdlist;
 }
 
@@ -590,7 +656,11 @@ a module named after a swamp?!
 
 =over
 
-=item epdlist
+=item epdlist - given a list of moves, return a list of EPD strings.
+
+=item epdstr - given an EPD string convert it to the specified string representation.
+
+=item epdset - allows the user to specifiy an initial position.
 
 =back
 
@@ -609,6 +679,8 @@ a module named after a swamp?!
 =over
 
 =item Various epd to string conversion routines for typesetting, html etc...
+
+=item oo-ify support variables...
 
 =back
 
