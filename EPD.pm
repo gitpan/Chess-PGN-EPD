@@ -14,20 +14,18 @@ my %hash = (ECO => \%hECO,
     NIC => \%hNIC,
     Opening => \%hOpening);
 
-INIT {
-    foreach  (@INC) {
-        if (-d "$_/Chess/PGN/db") {
-            $db_path = "$_/Chess/PGN/db/";
-            last;
-        }
+foreach  (@INC) {
+    if (-d "$_/Chess/PGN/db") {
+        $db_path = "$_/Chess/PGN/db/";
+        last;
     }
-    tie %hECO, "DB_File", $db_path . 'ECO', O_RDWR, 0640, $DB_HASH
-        or die "Couldn't open '${db_path}ECO': $!\n";
-    tie %hNIC, "DB_File", $db_path . 'NIC', O_RDWR, 0640, $DB_HASH
-        or die "Couldn't open '${db_path}NIC': $!\n";
-    tie %hOpening, "DB_File", $db_path . 'Opening', O_RDWR, 0640, $DB_HASH
-        or die "Couldn't open '${db_path}Opening': $!\n";
 }
+tie %hECO, "DB_File", $db_path . 'ECO', O_RDONLY, 0664, $DB_HASH
+    or die "Couldn't open '${db_path}ECO': $!\n";
+tie %hNIC, "DB_File", $db_path . 'NIC', O_RDONLY, 0664, $DB_HASH
+    or die "Couldn't open '${db_path}NIC': $!\n";
+tie %hOpening, "DB_File", $db_path . 'Opening', O_RDONLY, 0664, $DB_HASH
+    or die "Couldn't open '${db_path}Opening': $!\n";
 
 END {
     untie %hECO;
@@ -43,7 +41,7 @@ our @EXPORT = qw(
 	&epdlist
     %font2map
 );
-our $VERSION = '0.10';
+our $VERSION = '0.12';
 
 our %font2map = (
     'Chess Cases' => 'leschemelle',

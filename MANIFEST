@@ -4,6 +4,7 @@ Makefile.PL
 MANIFEST
 README
 test.pl
-db\ECO
-db\NIC
-db\Opening
+scripts/db.pl
+CSV/ECO.txt
+CSV/NIC.txt
+CSV/Opening.txt
