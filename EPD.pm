@@ -9,11 +9,11 @@ require Exporter;
 
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
-	&epdlist
-    &epdstr
     &epdset
+    &epdstr
+	&epdlist
 );
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 my %board;
 my $Kc;
@@ -21,6 +21,188 @@ my $Qc;
 my $kc;
 my $qc;
 my $w;
+
+my @onwhite = (
+    1,0,1,0,1,0,1,0,
+    0,1,0,1,0,1,0,1,
+    1,0,1,0,1,0,1,0,
+    0,1,0,1,0,1,0,1,
+    1,0,1,0,1,0,1,0,
+    0,1,0,1,0,1,0,1,
+    1,0,1,0,1,0,1,0,
+    0,1,0,1,0,1,0,1,
+    );
+
+my %FontMap = ( 
+    hicky => {
+        OnBlack => 'OMASTLPNBRQK@',
+        OnWhite => 'omastlpnbrqk:',
+        SingleBox => '12345678',
+        DoubleBox => '!"#$%&\'(',
+        SingleRounded => '[]\^',
+        DoubleRounded => '<>;=/',
+        SingleLeftLegend => 'cdefghij',
+        DoubleLeftLegend => 'CDEFGHIJ',
+        SingleBottomLegend => 'wxyz{|}~',
+        DoubleBottomLegend => ')*+,-./0',
+    },
+    marroquin => {
+        OnBlack => 'OMVTWLPNBRQK+',
+        OnWhite => 'omvtwlpnbrqk ',
+        SingleBox => '12345789',
+        DoubleBox => '!"#$%/()',
+        SingleRounded => 'asdf',
+        DoubleRounded => 'ASDF',
+        SingleLeftLegend => "\300\301\302\303\034\305\306\307",
+        DoubleLeftLegend => "\340\341\342\343\344\345\346\347",
+        SingleBottomLegend => "\310\311\312\313\314\315\316\317",
+        DoubleBottomLegend => "\350\351\352\353\354\355\356\357",
+    },
+    leschemelle => {
+        OnBlack => 'OMVTWLPNBRQK+',
+        OnWhite => 'omvtwlpnbrqk ',
+        SingleBox => '12345789',
+        DoubleBox => '!"#$%/()',
+        SingleRounded => 'asdf',
+        DoubleRounded => 'ASDF',
+        SingleLeftLegend => "\300\301\302\303\034\305\306\307",
+        DoubleLeftLegend => "\340\341\342\343\344\345\346\347",
+        SingleBottomLegend => "\310\311\312\313\314\315\316\317",
+        DoubleBottomLegend => "\350\351\352\353\354\355\356\357",
+    },
+    linares => {
+        OnBlack => '0hg41i)HG$!Id',
+        OnWhite => 'pnbrqkPNBRQKw',
+        SingleBox => 'W_W[]W-W',
+        DoubleBox => 'cuC{}vlV',
+        SingleRounded => 'WWWW',
+        DoubleRounded => 'cCvV',
+        SingleLeftLegend => "\332\333\334\335\336\337\340\341",
+        DoubleLeftLegend => '(765&32%',
+        SingleBottomLegend => "\301\302\303\304\305\306\307\310",
+        DoubleBottomLegend => ',./9EFJM',
+    },
+    linares1 => {
+        OnBlack => '0hg41i)HG$!Id',
+        OnWhite => 'pnbrqkPNBRQKw',
+        SingleBox => '>;?:<A=@',
+        DoubleBox => '>;?:<A=@',
+        SingleRounded => '>?A@',
+        DoubleRounded => '>?A@',
+        SingleLeftLegend => '::::::::',
+        DoubleLeftLegend => '::::::::',
+        SingleBottomLegend => '========',
+        DoubleBottomLegend => '========',
+    },
+    linares2 => {
+        OnBlack => '0hg41i)HG$!Id',
+        OnWhite => 'pnbrqkPNBRQKw',
+        SingleBox => '^xY|yUz\\',
+        DoubleBox => '^xY|yUz\\',
+        SingleRounded => '^YU\\',
+        DoubleRounded => '^YU\\',
+        SingleLeftLegend => '||||||||',
+        DoubleLeftLegend => '||||||||',
+        SingleBottomLegend => 'zzzzzzzz',
+        DoubleBottomLegend => 'zzzzzzzz',
+    },
+    cowderoy => {
+        OnBlack => '$#!&%"*)\',+(0',
+        OnWhite => 'pnbrqkPNBRQK ',
+        SingleBox => '78946123',
+        DoubleBox => '78946123',
+        SingleRounded => '7913',
+        DoubleRounded => '7913',
+        SingleLeftLegend => '44444444',
+        DoubleLeftLegend => '44444444',
+        SingleBottomLegend => '22222222',
+        DoubleBottomLegend => '22222222',
+    },
+    bentzen1 => {
+        OnBlack => 'OJNTWLPHBRQK+',
+        OnWhite => 'ojntwlphbrqk ',
+        SingleBox => '!"#$%&\'(',
+        DoubleBox => '12345789',
+        SingleRounded => '!#&(',
+        DoubleRounded => '1379',
+        SingleLeftLegend => "\340\341\342\343\344\345\346\347",
+        DoubleLeftLegend => "\300\301\302\303\304\305\306\307",
+        SingleBottomLegend => "\350\351\352\353\354\355\356\357",
+        DoubleBottomLegend => "\310\311\312\313\314\315\316\317",
+    },
+    bentzen2 => {
+        OnBlack => 'OJNTWLPHBRQK+',
+        OnWhite => 'ojntwlphbrqk ',
+        SingleBox => '12345789',
+        DoubleBox => '12345789',
+        SingleRounded => '1379',
+        DoubleRounded => '1379',
+        SingleLeftLegend => '44444444',
+        DoubleLeftLegend => '44444444',
+        SingleBottomLegend => '88888888',
+        DoubleBottomLegend => '88888888',
+    },
+    scott1 => {
+        OnBlack => 'OJNTWLPHBRQK+',
+        OnWhite => 'ojntwlphbrqk*',
+        SingleBox => '(-)/\[_]',
+        DoubleBox => '(-)/\[_]',
+        SingleRounded => '(-)/\[_]',
+        DoubleRounded => '(-)/\[_]',
+        SingleLeftLegend => '////////',
+        DoubleLeftLegend => '////////',
+        SingleBottomLegend => '________',
+        DoubleBottomLegend => '________',
+    },
+    scott2 => {
+        OnBlack => 'OMVTWLPNBRQK+',
+        OnWhite => 'omvtwlpnbrqk ',
+        SingleBox => '12345789',
+        DoubleBox => '!"#$%/()',
+        SingleRounded => 'asdf',
+        DoubleRounded => 'ASDF',
+        SingleLeftLegend => '44444444',
+        DoubleLeftLegend => '$$$$$$$$',
+        SingleBottomLegend => '44444444',
+        DoubleBottomLegend => '$$$$$$$$',
+    },
+    bodlaender => {
+        OnBlack => 'OMVTWLomvtwl/',
+        OnWhite => 'PNBRQKpnbrqk ',
+        SingleBox => '51632748',
+        DoubleBox => '51632748',
+        SingleRounded => '51632748',
+        DoubleRounded => '51632748',
+        SingleLeftLegend => '33333333',
+        DoubleLeftLegend => '33333333',
+        SingleBottomLegend => '44444444',
+        DoubleBottomLegend => '44444444',
+    },
+    katch => {
+        OnBlack => 'OMVTWLPNBRQK/',
+        OnWhite => 'omvtwlpnbrqk ',
+        SingleBox => '12345789',
+        DoubleBox => '12345789',
+        SingleRounded => '12345789',
+        DoubleRounded => '12345789',
+        SingleLeftLegend => '44444444',
+        DoubleLeftLegend => '44444444',
+        SingleBottomLegend => '88888888',
+        DoubleBottomLegend => '88888888',
+    },
+    dummy => {
+        OnBlack => '',
+        OnWhite => '',
+        SingleBox => '',
+        DoubleBox => '',
+        SingleRounded => '',
+        DoubleRounded => '',
+        SingleLeftLegend => '',
+        DoubleLeftLegend => '',
+        SingleBottomLegend => '',
+        DoubleBottomLegend => '',
+    },
+);
 
 sub epdset {
     if (my $epd = shift) {
@@ -78,6 +260,97 @@ sub epdset {
 }
 
 sub epdstr {
+    my %parameters = @_;
+    my $epd = $parameters{'epd'} or die "Missing epd parameter: $!\n";
+    my $type = lc($parameters{'type'}) or die "Missing type parameter: $!\n";
+    my ($border,$corner,$legend) = ('single','square','no');
+
+    $border = lc($parameters{'border'}) if exists($parameters{'border'});
+    $corner = lc($parameters{'corner'}) if exists($parameters{'corner'});
+    $legend = lc($parameters{'legend'}) if exists($parameters{'legend'});
+    my @array = split(/\/|\s/,$epd);
+    my @board;
+    if ($type eq 'diagram') {
+        foreach  (0..7) {
+            $array[$_] =~ s/(\d+)/'_' x $1/ge;
+            $array[$_] =~ s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '-' : ' '/ge;
+            push(@board, 8 - $_ . "  " . $array[$_]);
+        }
+        push(@board,'   abcdefgh');
+    }
+    elsif ($type eq 'latex') {
+        push(@board,'\\begin{diagram}');
+        push(@board,'\\board');
+        foreach  (0..7) {
+            $array[$_] =~ s/(\d+)/'_' x $1/ge;
+            $array[$_] =~ s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '*' : ' '/ge;
+            push(@board,'{' . $array[$_] . '}');
+        }
+        push(@board,'\\end{diagram}');
+    }
+    elsif ($type eq 'tilburg') {
+        foreach  (0..7) {
+            $array[$_] =~ s/(\d+)/'_' x $1/ge;
+            $array[$_] =~ s/([pnbrqkPNBRQK_])/mappiece(pos $array[$_],$_,$1,"\341\345\351\355\361\365\337\343\347\353\357\363\335","\340\344\350\354\360\364\336\342\346\352\356\362\334")/ge;
+            push(@board,$array[$_]);
+        }
+    }
+    else {
+        @board = configureboard($type,$border,$corner,$legend);
+        foreach  (0..7) {
+            $array[$_] =~ s/(\d+)/'_' x $1/ge;
+            $array[$_] =~ s/([pnbrqkPNBRQK_])/mappiece(pos $array[$_],$_,$1,$FontMap{$type}{'OnBlack'},$FontMap{$type}{'OnWhite'})/ge;
+            substr($board[$_ + 1],1,8) = $array[$_];
+        }
+    }
+    return @board;
+}
+
+sub configureboard {
+    my $type = shift;
+    my $border = shift;
+    my $corner = shift;
+    my $legend = shift;
+    my $single = $border eq 'single';
+    my $box = $FontMap{$type}{$single ? 'SingleBox' : 'DoubleBox'};
+    my @board;
+
+    if ($corner eq 'rounded') {
+        my $corners = $FontMap{$type}{$single ? 'SingleRounded' : 'DoubleRounded'};
+
+        substr($box,0,1) = substr($corners,0,1);
+        substr($box,2,1) = substr($corners,1,1);
+        substr($box,5,1) = substr($corners,2,1);
+        substr($box,7,1) = substr($corners,3,1);
+    }
+    push(@board,substr($box,0,1) . substr($box,1,1) x 8 . substr($box,2,1));
+    for(0..7) {
+        push(@board,substr($box,3,1) . ' ' x 8 . substr($box,4,1));
+    }
+    push(@board,substr($box,5,1) . substr($box,6,1) x 8 . substr($box,7,1));
+    if ($legend eq 'yes') {
+        my $left = $FontMap{$type}{$single ? 'SingleLeftLegend' : 'DoubleLeftLegend'};
+        my $bottom = $FontMap{$type}{$single ? 'SingleBottomLegend' : 'DoubleBottomLegend'};
+
+        for (1..8) {
+            substr($board[$_],0,1) = substr($left,$_ - 1,1);
+        }
+        substr($board[-1],1,8) = $bottom;
+
+    }
+    return @board;
+}
+
+sub mappiece {
+    my $x = shift;
+    my $y = shift;
+    my $piece = shift;
+    my $ifonblack = shift;
+    my $ifonwhite = shift;
+    my $onwhite = $onwhite[($y * 8) + $x];
+    my $which = index('pnbrqkPNBRQK_',$piece);
+
+    return substr($onwhite ? $ifonwhite : $ifonblack,$which,1);
 }
 
 sub epdlist {
@@ -466,18 +739,16 @@ __END__
 
 =head1 NAME
 
-Chess::PGN::EPD - Perl extension to convert an array moves in PGN standard notation, to
-EPD form.
+Chess::PGN::EPD - Perl extension to produce and manipulate EPD text.
 
 =head1 SYNOPSIS
 
  #!/usr/bin/perl
  #
- # epd.pl -- program to generate epd from .PGN
+ # epd1.pl -- program to generate epd from .PGN
  #
  use warnings;
  use strict;
- use diagnostics;
  use Chess::PGN::Parse;
  use Chess::PGN::EPD;
  
@@ -489,11 +760,280 @@ EPD form.
      }
  }
 
+B<OR>
+
+ #!/usr/bin/perl
+ #
+ # epd2.pl -- program to generate epd from .PGN
+ #
+ use warnings;
+ use strict;
+ use Chess::PGN::EPD;
+
+ my $position = 'rnbqkb1r/ppp1pppp/5n2/3P4/8/8/PPPP1PPP/RNBQKBNR w KQkq -';
+ print join("\n",epdstr(epd => $position,type => 'latex'));
+
 =head1 DESCRIPTION
 
-=head2 EPD
 
-EPD is "Extended Position Description"; it is a standard for describing chess
+=head2 epdset(I<epd>)
+
+For those instances where the game in question does not begin
+with a complete move list, this function allows the user to
+set the starting position using a 'EPD' string as described
+elsewhere in the document.
+
+=cut
+
+=head2 epdstr(I<epd>,I<type> [I<border>,I<corner>,I<legend>])
+
+Returns an array of strings that represent a diagramatic conversion of the
+specified B<epd> string to the specified B<type>. Parameters are passed as
+a anonymous hash, i.e. epdstr(epd => $position,type => 'diagram') or similar.
+
+=head3 Types Supported
+
+The following types are understood by B<epdstr>:
+
+=over
+
+=item 'diagram'
+
+A plain ASCII diagram with simple border showing rank and file. Typical output:
+
+ 8  rnbqkb r
+ 7  ppp pppp
+ 6   - - n -
+ 5  - -P- - 
+ 4   - - - -
+ 3  - - - - 
+ 2  PPPP PPP
+ 1  RNBQKBNR
+    abcdefgh
+
+=item 'latex'
+
+The necessary text fragment to 'set' the diagram in LaTeX using 
+any variation of Piet Tutelars original chess12.tar.Z package. As given, the LaTeX
+command 'diagram' is used. As an example here is the source to test.tex:
+
+ %%
+ %% test.tex -- example LaTeX file to demonstrate output from Chess::PGN::EPD
+ %%
+ \documentclass{article}
+ \usepackage{chess}
+ \usepackage{bdfchess}
+ \begin{document}
+ \newenvironment{diagram}{\begin{nochess}}{$$\showboardwithnotation$$\end{nochess}}
+ %%
+ %% fragment as produced by epdstr(epd => $position,type => 'latex');
+ %%
+ \begin{diagram}
+ \board
+ {rnbqkb r}
+ {ppp pppp}
+ { * * n *}
+ {* *P* * }
+ { * * * *}
+ {* * * * }
+ {PPPP PPP}
+ {RNBQKBNR}
+ \end{diagram}
+ %%
+ %% end of fragment
+ %%
+ \end{document}
+
+=item 'linares'
+
+Alpine Electronics' LinaresDiagram font. Mapping also works with both HastingsDiagram
+and ZurichDiagram fonts. Single or double border, With or without algebraic legend.
+
+=item 'linares1'
+
+Standard mapping, single border, squares offset.
+
+=item 'linares2'
+
+Standard mapping, thick single border.
+
+=item 'tilburg'
+
+A borderless font designed by Eric Schiller and Bill Cone.
+
+=item 'marroquin'
+
+This type refers to any font designed by Armando H. Marroquin,
+excepting his FigurineSymbol fonts. They having a different purpose,
+have a different mapping.
+
+=item 'leschemelle'
+
+The map for Chess Cases designed by Matthieu Leschemelle.
+
+=item 'bentzen1'
+
+The map for Chess Alpha designed by Eric Bentzen.
+
+=item 'bentzen2'
+
+The map for Chess Berlin designed by Eric Bentzen.
+
+=item 'hickey'
+
+The map for Chess Plain designed by Alan Hickey.
+
+=item 'scott1'
+
+The map for Chess Regular a port of Adobe Cheq ported to
+True Type by Alistair Scott.
+
+=item 'scott2'
+
+The map for Chess Usual a modification of Chess Regular
+by Armando H. Marroquin.
+
+=item 'bodlaender'
+
+The map for Chess Utrecht designed by Hans Bodlaender.
+
+=item 'cowderoy'
+
+The map for Traveller Standard v3  designed by Alan Cowderoy.
+
+=back
+
+Note that 'type' is not case sensative so that 'latex' and 'LaTeX' will both
+work equally well.
+
+=head3 Fonts Supported
+
+List with font name, font author, and type name:
+
+=over
+
+=item 1Chess Cases -- Matthieu Leschemelle -- leschemelle
+
+=item 1Chess Adventurer -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Alfonso-X -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Alpha -- Eric Bentzen -- bentzen1
+
+=item 1Chess Berlin -- Eric Bentzen -- bentzen2
+
+=item 1Chess Condal -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Harlequin -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Kingdom -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Leipzig -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Line -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Lucena -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Magnetic -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Mark -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Marroquin -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Maya -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Mediaeval -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Mérida -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Millennia -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Miscel -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Montreal -- Gary Katch -- katch
+
+=item 1Chess Motif -- Armando H. Marroquin -- marroquin
+
+=item 1Chess Plain -- Alan Hickey -- hickey
+
+=item 1Chess Regular -- Alistair Scott -- scott1
+
+=item 1Chess Usual -- Armando H. Marroquin -- scott2
+
+=item 1Chess Utrecht -- Hans Bodlaender -- bodlaender
+
+=item 1Tilburg -- Eric Schiller and Bill Cone -- tilburg
+
+=item 1Traveller Standard v3 -- Alan Cowderoy -- cowderoy
+
+=back
+
+These are available at L<http://www.enpassant.dk/chess/fonteng.htm> along
+with a good deal of useful information on chess desktop publishing.
+
+=head3 Font Designers Supported
+
+=over
+
+=item Eric Bentzen
+
+=item Bill Cone
+
+=item Alan Cowderoy
+
+=item Alan Hickey
+
+=item Gary Katch
+
+=item Armondo H. Marroquin
+
+=item Eric Schiller
+
+=item Alastair Scott
+
+=item Steve Smith
+
+=item Piet Tutelaers
+
+=back
+
+=head3 Borders and Such Like
+
+Some fonts, for example those designed by Armondo H. Marroquin support a variety of border
+styles and decorations. The border may be single or double, with square corners or rounded,
+and with an algebraic legend. These effects are supported by the addition of the necessary
+parameters to the allowed parameter list. In particular:
+
+=over
+
+=item * Border, values can be either 'single' or 'double' (default is 'single')
+
+=item * Corner, values can be either 'square' or 'rounded' (default is 'square')
+
+=item * Legend, values can be either 'yes' or 'no' (default is 'no')
+
+=back
+
+Again, letter case is not particularly important, 'yes' works as well as 'Yes' etc.
+As for those fonts that don't support a particular feature, B<epdstr> will fail silently, that
+is, the parameter will be ignored and processing will continue as though no such request
+had been made.
+
+=cut
+
+=head2 epdlist(I<movelist>)
+
+Returns an array of strings that represent the conversion of
+game text into positional shorthand, one entry for each move
+made in the game.
+
+=cut
+
+=head3 Concepts
+
+B<EPD>
+
+"Extended Position Description" is a standard for describing chess
 positions along with an extended set of structured attribute values using the
 ASCII character set.  It is intended for data and command interchange among
 chessplaying programs.  It is also intended for the representation of portable
@@ -516,9 +1056,9 @@ Like FEN, EPD can also be used for general position description.  However,
 unlike FEN, EPD is designed to be expandable by the addition of new operations
 that provide new functionality as needs arise.
 
-=head2 FEN
+B<FEN>
 
-FEN is "Forsyth-Edwards Notation"; it is a standard for describing chess
+"Forsyth-Edwards Notation" is a standard for describing chess
 positions using the ASCII character set.
 
 A single FEN record uses one text line of variable length composed of six data
@@ -643,28 +1183,28 @@ capture:
 
 4k3/8/8/8/8/8/4P3/4K3 w - - 5 39
 
-=head1 NOTE
+=head3 NOTE
 
-With only a little observation, the astute user will notice that actually this module
+With only a little observation, the astute user will notice that actually this function
 doesn't return either EPD or FEN, but rather a bit of both. It is mostly FEN, but it lacks
 the Fullmove number field, since for most usage that information is available else where
 or can easily be reconstructed. As to why the module is called EPD, well I figured since it
 wasn't one and it wasn't the other, that left it up to me to choose--besides, who would want
 a module named after a swamp?!
 
-=head2 EXPORT
+=head1 EXPORT
 
 =over
 
-=item epdlist - given a list of moves, return a list of EPD strings.
+=item epdset - allows the user to specifiy an initial position.
 
 =item epdstr - given an EPD string convert it to the specified string representation.
 
-=item epdset - allows the user to specifiy an initial position.
+=item epdlist - given a list of moves, return a list of EPD strings.
 
 =back
 
-=head2 DEPENDENCIES
+=head1 DEPENDENCIES
 
 =over
 
@@ -678,9 +1218,11 @@ a module named after a swamp?!
 
 =over
 
-=item Various epd to string conversion routines for typesetting, html etc...
+=item Continue to improve documentation.
 
-=item oo-ify support variables...
+=item oo-ify support variables.
+
+=item Allow font map customization.
 
 =back
 

@@ -1,8 +1,7 @@
-Chess/PGN/EPD version 0.03
+Chess/PGN/EPD version 0.04
 ==========================
 
-CHESS::PGN::EPD - Perl extension to convert an array moves in PGN standard notation, to
-EPD form. See POD and Changes file for details.
+CHESS::PGN::EPD - Perl extension to produce and manipulate EPD text.
 
 INSTALLATION
 
@@ -18,7 +17,7 @@ DEPENDENCIES
 This module requires these other modules and libraries:
 
 Chess::PGN::Moves
-Chess::PGN::PGNParser (useless without, not actually required though...)
+Chess::PGN::Parse (useless without, not actually required though...)
 
 COPYRIGHT AND LICENCE
 
