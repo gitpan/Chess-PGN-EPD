@@ -8,7 +8,7 @@ use DB_File;
 
 require Exporter;
 
-my $db_path;
+my $db_path = './db/';
 my (%hECO,%hNIC,%hOpening);
 my %hash = (ECO => \%hECO,
     NIC => \%hNIC,
@@ -43,7 +43,7 @@ our @EXPORT = qw(
 	&epdlist
     %font2map
 );
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 our %font2map = (
     'Chess Cases' => 'leschemelle',
