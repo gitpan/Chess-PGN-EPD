@@ -1,0 +1,6 @@
+Revision history for Perl extension Chess::PGN::EPD.
+
+0.01  Fri Feb  8 11:52:56 2002
+	- original version; created by h2xs 1.21 with options
+		-A -X Chess::PGN::EPD
+
