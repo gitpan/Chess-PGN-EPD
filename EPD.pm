@@ -39,9 +39,11 @@ our @EXPORT = qw(
     &epdset
     &epdstr
 	&epdlist
+    &epdgetboard
+    &psquares
     %font2map
 );
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 our %font2map = (
     'Chess Cases' => 'leschemelle',
@@ -349,6 +351,15 @@ sub epdset {
 
 sub epdstr {
     my %parameters = @_;
+    if ($parameters{'board'}) {
+        my %board;
+        my $hashref = $parameters{'board'};
+
+        foreach (keys %$hashref) {
+            $board{$_} = $$hashref{$_};
+        }
+        $parameters{'epd'} = epd( 0,0,0,0,0,0,%board );
+    }
     my $epd = $parameters{'epd'} or die "Missing epd parameter: $!\n";
     my $type = lc($parameters{'type'}) or die "Missing type parameter: $!\n";
     my ($border,$corner,$legend) = ('single','square','no');
@@ -466,6 +477,13 @@ sub mappiece {
     return substr($onwhite ? $ifonwhite : $ifonblack,$which,1);
 }
 
+sub epdgetboard {
+    my $epd = shift;
+
+    epdset($epd);
+    return $w, $Kc, $Qc, $kc, $qc, %board;
+}
+
 sub epdlist {
     my @moves = @_;
     my $debug = ($moves[-1] eq '1');
@@ -481,7 +499,7 @@ sub epdlist {
             print "\%board uninitialized\n";
         }
     }
-    epdset() if !%board;
+    epdset();
     foreach (@moves) {
         if ($_) {
             my ( $piece, $to, $from, $promotion ) = movetype( $w, $_ );
@@ -947,12 +965,10 @@ with a complete move list, this function allows the user to
 set the starting position using a 'EPD' string as described
 elsewhere in the document.
 
-=cut
-
-=head2 epdstr(I<epd>,I<type> [I<border>,I<corner>,I<legend>])
+=head2 epdstr(I<epd>|I<board>,I<type> [I<border>,I<corner>,I<legend>])
 
 Returns an array of strings that represent a diagramatic conversion of the
-specified B<epd> string to the specified B<type>. Parameters are passed as
+specified B<epd> string or board postion to the specified B<type>. Parameters are passed as
 a anonymous hash, i.e. epdstr(epd => $position,type => 'diagram') or similar.
 
 =head3 Types Supported
@@ -1210,15 +1226,11 @@ As for those fonts that don't support a particular feature, B<epdstr> will fail 
 is, the parameter will be ignored and processing will continue as though no such request
 had been made.
 
-=cut
-
 =head2 epdlist(I<movelist>)
 
 Returns an array of strings that represent the conversion of
 game text into positional shorthand, one entry for each move
 made in the game.
-
-=cut
 
 =head3 Concepts
 
@@ -1383,6 +1395,32 @@ or can easily be reconstructed. As to why the module is called EPD, well I figur
 wasn't one and it wasn't the other, that left it up to me to choose--besides, who would want
 a module named after a swamp?!
 
+=head2 epdgetboard(I<epd>)
+
+Provides access to the 'board' with the current epd postition set up. The returned values are:
+
+=over
+
+=item $w - boolean, white to move?
+
+=item $Kc - boolean, has white castled king side?
+
+=item $Qc - boolean, has white castled queen side?
+
+=item $kc - boolean, has black castled king side?
+
+=item $qc - boolean, has black castled queen side?
+
+=item %board - hash board, keys are algebraic square names, values are occupying piece.
+
+=back
+
+=head2 psquares(I<piece>,I<board>)
+
+Given a 'piece' (single character, uppercase for white, lowercase for black, KQRBNPkqrbnp) and
+the current board hash, return a list of square names (algebraic) locating instances of the
+piece.
+
 =head1 EXPORT
 
 =over
@@ -1391,9 +1429,13 @@ a module named after a swamp?!
 
 =item epdset - allows the user to specifiy an initial position.
 
-=item epdstr - given an EPD string convert it to the specified string representation.
+=item epdstr - given an EPD string or a board, convert it to the specified string representation.
 
 =item epdlist - given a list of moves, return a list of EPD strings.
+
+=item epdgetboard - given an EPD string, setup current board and return current information.
+
+=item psquares - given the piece and the board, generate and return a list of squares occupied by that type of piece.
 
 =back
 
@@ -1419,6 +1461,8 @@ a module named after a swamp?!
 
 =item Allow font map customization.
 
+=item Solve the english to algebraic problem.
+
 =back
 
 =head1 KNOWN BUGS
@@ -1434,5 +1478,3 @@ B<I<Hugh S. Myers>>
 =item Always: hsmyers@sdragons.com
 
 =back
-
-=cut

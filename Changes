@@ -66,3 +66,9 @@ Revision history for Perl extension Chess::PGN::EPD.
 	- stamp out a bug related to knight moves
 0.18  Wed Aug 21 12:49:00 2002
 	- found a forgotten dependency
+0.19  Thu Nov 28 10:56:49 2002
+        - another patch to the knight moves problem
+	- export psquares sub
+	- create and export new sub, epdgetboard
+      Sat Nov 30 07:49:37 2002
+        - modified epdstr to add 'board' as parameter

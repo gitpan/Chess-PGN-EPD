@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN { plan tests => 4 };
+BEGIN { plan tests => 5 };
 use Chess::PGN::EPD;
 ok(1); # If we made it this far, we're ok.
 
@@ -28,6 +28,7 @@ while (<DATA>) {
 ok(ECO(\@epd),'C00');
 ok(NIC(\@epd),'FR 1');
 ok(Opening(\@epd),'French: Labourdonnais variation');
+ok(Knight());
 
 sub ECO {
     my $movesref = shift;
@@ -45,6 +46,12 @@ sub Opening {
     my $movesref = shift;
 
     return epdcode('Opening',$movesref);
+}
+
+sub Knight {
+    my @epd = epdlist(qw(e4 c5 f4 Nf6 Nc3 d5 e5 d4 exf6 dxc3 fxg7 cxd2));
+
+    return 1;
 }
 
 __DATA__
