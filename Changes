@@ -47,15 +47,9 @@ Revision history for Perl extension Chess::PGN::EPD.
 	  not 'Chess/PGN/db' but 'Chess\PGN\db'
 0.12  Tue Apr 02 13:54:01 2002
 	- patch for permissions bug, db files are created 0644, so should access in
-	  read-only mode.
+	  read-only mode
 	- also remove INIT block as un-necessary
-	- add db.pl to create Berkeley DB files on the user's system (portably)
-      Wed Apr 03 06:45:16 2002
-	- integrate db.pl into Makefile.PL
-	- correct problems with db not existing - mkdir('db');
-	- correct reference to 'csv', should be 'CSV' in Makefile.PL
-	- remember that 'NIXen care about tabs
-	- add dependancy list to Makefile.PL
-	- add actual test to test.pl
-      Thu Apr 04 08:33:58 20
-	- add Test 1.15 to dependancy list
+0.13  Mon Jun 24 04:23:01 2002
+	- fold in patch for 'Malformed UTF-8 character (byte 0xfe) in ord...' problem found
+	  by Cyril Malkov - patch is his too!
+	- add better test.pl file
