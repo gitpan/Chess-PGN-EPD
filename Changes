@@ -40,4 +40,7 @@ Revision history for Perl extension Chess::PGN::EPD.
 0.09  Sat Mar 30 18:58:00 2002
 	- correct make test bug, $db_path needs default value of './db/' since test happens
 	  before install
+0.10  Mon Apr 01 15:03:27 2002
+	- correct Makefile.PL to use '/' in list of files, not '\' which fails under Linux
+
 
