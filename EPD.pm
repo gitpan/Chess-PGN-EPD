@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Chess::PGN::Moves;
 use DB_File;
+use Data::Dumper;
 
 require Exporter;
 
@@ -43,7 +44,7 @@ our @EXPORT = qw(
     &psquares
     %font2map
 );
-our $VERSION = '0.19';
+our $VERSION = '0.21';
 
 our %font2map = (
     'Chess Cases' => 'leschemelle',
@@ -501,6 +502,7 @@ sub epdlist {
     }
     epdset();
     foreach (@moves) {
+        Print(%board) if $debug;
         if ($_) {
             my ( $piece, $to, $from, $promotion ) = movetype( $w, $_ );
             my $enpassant;
@@ -555,17 +557,26 @@ sub epdlist {
                               chr( ord( substr( $enpassant, 1, 1 ) ) + 1 );
                         }
                         $board{$enpassant} = undef;
-                        print "\$enpassant=$enpassant \$from=$from \$to=$to\n"
-                          if $debug;
+                        if ($debug) {
+                            print "\$enpassant='$enpassant' " if $enpassant;
+                            print "\$from='$from' " if $from;
+                            print "\$to='$to'" if $to;
+                            print "\n";
+                        }
                     }
                 }
                 ( $board{$to}, $board{$from} ) =
                   ( $promotion ? $promotion : $board{$from}, undef );
-                print "$piece moved from $from to $to\n" if $debug;
-                print "$piece promotes to $promotion\n"
-                  if $promotion and $debug;
+                if ($debug) {
+                    print "\$piece='$piece' " if $piece;
+                    print "\$from='$from' " if $from;
+                    print "\$to='$to' " if $to;
+                    print "\$promotion='$promotion' " if $promotion;
+                }
                 push ( @epdlist, epd( $w, $Kc, $Qc, $kc, $qc, $ep, %board ) );
-                print "$epdlist[-1]\n" if $debug;
+                if ($debug) {
+                    print "$epdlist[-1]\n";
+                }
             }
             elsif ( $piece eq "KR" ) {
                 my ( $k_from, $r_from ) = unpack( "A2A2", $from );
@@ -579,10 +590,13 @@ sub epdlist {
                 else {
                     $kc = $qc = 0;
                 }
-                print $w ? "White" : "Black", " castles from $k_from to $k_to\n"
-                  if $debug;
+                if ($debug) {
+                    print $w ? "White" : "Black", " castles from $k_from to $k_to\n";
+                }
                 push ( @epdlist, epd( $w, $Kc, $Qc, $kc, $qc, $ep, %board ) );
-                print "$epdlist[-1]\n" if $debug;
+                if ($debug) {
+                    print "$epdlist[-1]\n";
+                }
             }
             else {
                 my @piece_at;
@@ -590,11 +604,15 @@ sub epdlist {
 
                 $piece = lc($piece) if not $w;
                 @piece_at = psquares( $piece, %board );
-                print "\@piece_at=", join ( ",", @piece_at ), "\n" if $debug;
+                if ($debug) {
+                    print "\@piece_at=", join ( ",", @piece_at ), "\n" if @piece_at;
+                }
                 if ($from) {
                     my @tmp;
-
-                    print "\$from=$from\n" if $debug;
+                    
+                    if ($debug) {
+                        print "\$from='$from'\n" if $from;
+                    }
                     if ( $from =~ /[a-h]/ ) {
                         foreach (@piece_at) {
                             push ( @tmp, $_ )
@@ -616,12 +634,13 @@ sub epdlist {
                         push ( @fromlist, $square ) if $_ eq $to;
                     }
                 }
-
+                print "scalar \@fromlist = ",scalar(@fromlist),"\n" if $debug;
                 if ( scalar(@fromlist) != 1 ) {
-                    print "\@fromlist=", join ( ",", @fromlist ), "\n"
-                      if $debug;
+                    if ($debug) {
+                        print "\@fromlist=", join ( ",", @fromlist ),"\n" if @fromlist;
+                    }
                     foreach (@fromlist) {
-                        if ( canmove( $piece, $to, $_, %board ) ) {
+                        if ( canmove( $piece, $to, $_, %board ) and isLegal($w,$_,$to,%board)) {
                             $from = $_;
                             last;
                         }
@@ -646,21 +665,97 @@ sub epdlist {
                         $kc = $qc = 0;
                     }
                 }
-                if ( not( $from or $to ) ) {
-                    die "Both from and to undefined\n";
-                }
                 ( $board{$to}, $board{$from} ) = ( $board{$from}, undef );
-                print "\@piece_at=", join ( ",", @piece_at ), "\n" if $debug;
-                print "$piece moved from $from to $to\n" if $debug;
+                if ($debug) {
+                    print "\@piece_at=", join ( ",", @piece_at ), "\n" if @piece_at;
+                    print "\$piece='$piece' " if $piece;
+                    print "\$from='$from' " if $from;
+                    print "\$to='$to' " if $to;
+                }
                 push ( @epdlist, epd( $w, $Kc, $Qc, $kc, $qc, $ep, %board ) );
-                print "$epdlist[-1]\n" if $debug;
-                die "From undefined\n" if not $from;
+                if ($debug) {
+                    print "$epdlist[-1]\n";
+                }
+                if (not $from) {
+                    ShowPieces(%board);
+                    Print(%board);
+                    die "From undefined\n" if not $from;
+                }
             }
             $w ^= 1;
         }
     }
     %board = ();
     return @epdlist;
+}
+
+sub isLegal {
+    my ($w,$from,$to,%board) = @_;
+    my %board_copy = %board;
+    my $kings_square;
+    my @attack_list;
+
+    ( $board_copy{$to}, $board_copy{$from} ) = ( $board_copy{$from}, undef );
+    my $findking = $w ? 'K' : 'k';
+    foreach (keys %board_copy) {
+        if ($board_copy{$_} and ($board_copy{$_} eq $findking)) {
+            $kings_square = $_;
+            last;
+        }
+    }
+    my $mask = $w ? 'qrnbp' : 'QRNBP';
+    foreach my $square (keys %board_copy) {
+        if ($board_copy{$square} and $mask =~ /$board_copy{$square}/) {
+            foreach ( @{ $move_table{ uc($board_copy{$square}) }{$square} } ) {
+                push ( @attack_list, $square ) if $_ eq $kings_square;
+            }
+        }
+    }
+    foreach (@attack_list) {
+        if (canmove( $board_copy{$_}, $kings_square, $_, %board_copy )) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+sub ShowPieces {
+    my %board = @_;
+
+    for my $square (keys %board) {
+        my $piece = $board{$square};
+        next unless $piece;
+        print "'$square' == ",$piece,"\n";
+    }
+}
+
+sub Print {
+    my (%board) = @_;
+    my $whitesquare = 1;
+    my @rows = (
+                 [qw(a8 b8 c8 d8 e8 f8 g8 h8)], [qw(a7 b7 c7 d7 e7 f7 g7 h7)],
+                 [qw(a6 b6 c6 d6 e6 f6 g6 h6)], [qw(a5 b5 c5 d5 e5 f5 g5 h5)],
+                 [qw(a4 b4 c4 d4 e4 f4 g4 h4)], [qw(a3 b3 c3 d3 e3 f3 g3 h3)],
+                 [qw(a2 b2 c2 d2 e2 f2 g2 h2)], [qw(a1 b1 c1 d1 e1 f1 g1 h1)]
+    );
+
+    for ( 0 .. 7 ) {
+        print "\n", 8 - $_, "  ";
+        for ( @{ $rows[$_] } ) {
+            if ( $board{$_} ) {
+                print $board{$_};
+            }
+            elsif ($whitesquare) {
+                print ' ';
+            }
+            else {
+                print '-';
+            }
+            $whitesquare ^= 1;
+        }
+        $whitesquare ^= 1;
+    }
+    print "\n   abcdefgh\n\n";
 }
 
 sub movetype {
@@ -727,14 +822,8 @@ sub movetype {
 
 sub psquares {
     my ( $piece, %board ) = @_;
-    my $key;
-    my $value;
-    my @squares;
 
-    while ( ( $key, $value ) = each(%board) ) {
-        push ( @squares, $key ) if ( $value and ( $value eq $piece ) );
-    }
-    return @squares;
+    grep {$_ and $board{$_} and ($board{$_} eq $piece)} keys %board;
 }
 
 sub epd {
@@ -792,29 +881,116 @@ sub epd {
     return $epd;
 }
 
+#sub canmove {
+#    my ( $piece, $to, $from, %board ) = @_;
+#    my $lto;
+#    my $rto;
+#    my $lfrom;
+#    my $rfrom;
+#    my $result = 1;
+#    my $p;
+#    my $offset  = 1;
+#    my $roffset = 1;
+#    my $loffset = 1;
+#    my $c       = 0;
+#
+#    $to =~ /(.)(.)/;
+#    $lto = $1;
+#    $rto = $2;
+#    $from =~ /(.)(.)/;
+#    $lfrom = $1;
+#    $rfrom = $2;
+#    if ( ( $rto eq $rfrom ) or ( $lto eq $lfrom ) ) {
+#
+#        if ( ( $rto eq $rfrom and $lto lt $lfrom )
+#          or ( $lto eq $lfrom and $rto lt $rfrom ) )
+#        {
+#            $offset = -1;
+#        }
+#
+#        if ( $lto eq $lfrom ) {
+#            $c = 1;
+#        }
+#        while ( $from ne $to ) {
+#            substr( $from, $c, 1 ) =
+#              chr( ord( substr( $from, $c, 1 ) ) + $offset );
+#
+#            if ( $p = $board{$from} ) {
+#                if ( $from ne $to ) {
+#                    $result = 0;
+#                }
+#                last;
+#            }
+#        }
+#    }
+#    elsif ($piece =~ /[bq]/i) {
+#
+#        if ( $rto lt $rfrom ) {
+#            $roffset = -1;
+#        }
+#        if ( $lto lt $lfrom ) {
+#            $loffset = -1;
+#        }
+#        while ( $from ne $to ) {
+#            substr( $from, 0, 1 ) =
+#              chr( ord( substr( $from, 0, 1 ) ) + $loffset );
+#            substr( $from, 1, 1 ) =
+#              chr( ord( substr( $from, 1, 1 ) ) + $roffset );
+#            if ( $p = $board{$from} ) {
+#
+#                if ( $from ne $to ) {
+#                    $result = 0;
+#                }
+#                last;
+#            }
+#        }
+#    }
+#    else {
+#        if( $p = $board{$to} )
+#        {
+#            $result = 0
+#            if( ( $piece =~ /N/ and $p =~ /(R|Q|B|K|N|P)/ ) or
+#                ( $piece =~ /n/ and $p =~ /(r|q|b|k|n|p)/ ) );
+#        }
+#    }
+#
+#    if ($p) {
+#        if ( ( $piece =~ /RQB/ and $p =~ /RQBKNP/ )
+#          or ( $piece =~ /rqb/ and $p =~ /rqbknp/ ) )
+#        {
+#            $result = 0;
+#        }
+#    }
+#    return $result;
+#}
 sub canmove {
-    my ( $piece, $to, $from, %board ) = @_;
+    my ( $piece, $to, $from, %board) = @_;
     my $lto;
     my $rto;
     my $lfrom;
     my $rfrom;
-    my $result = 1;
-    my $p;
+    my $result  = 1;
     my $offset  = 1;
     my $roffset = 1;
     my $loffset = 1;
     my $c       = 0;
 
     $to =~ /(.)(.)/;
-    $lto = $1;
-    $rto = $2;
+    ($lto,$rto) = ($1,$2);
     $from =~ /(.)(.)/;
-    $lfrom = $1;
-    $rfrom = $2;
-    if ( ( $rto eq $rfrom ) or ( $lto eq $lfrom ) ) {
+    ($lfrom,$rfrom) = ($1,$2);
+
+    if ($board{$from} and $board{to}) {
+        if (defined($board{$from}) and defined($board{$to})) {
+            if ($board{$from}->color() == $board{$to}->color()) {
+                $result = 0;
+            }
+        }
+    }
+    elsif ( ( $rto eq $rfrom ) or ( $lto eq $lfrom ) ) {
 
         if ( ( $rto eq $rfrom and $lto lt $lfrom )
-          or ( $lto eq $lfrom and $rto lt $rfrom ) )
+             or ( $lto eq $lfrom and $rto lt $rfrom ) )
         {
             $offset = -1;
         }
@@ -825,16 +1001,13 @@ sub canmove {
         while ( $from ne $to ) {
             substr( $from, $c, 1 ) =
               chr( ord( substr( $from, $c, 1 ) ) + $offset );
-
-            if ( $p = $board{$from} ) {
-                if ( $from ne $to ) {
-                    $result = 0;
-                }
+            if ( defined($board{$from}) ) {
+                $result = 0 if ( $from ne $to );
                 last;
             }
         }
     }
-    elsif ($piece =~ /[bq]/i) {
+    elsif ( $piece =~ /[bq]/i ) {
 
         if ( $rto lt $rfrom ) {
             $roffset = -1;
@@ -847,29 +1020,10 @@ sub canmove {
               chr( ord( substr( $from, 0, 1 ) ) + $loffset );
             substr( $from, 1, 1 ) =
               chr( ord( substr( $from, 1, 1 ) ) + $roffset );
-            if ( $p = $board{$from} ) {
-
-                if ( $from ne $to ) {
-                    $result = 0;
-                }
+            if ( defined($board{$from}) ) {
+                $result = 0 if ( $from ne $to );
                 last;
             }
-        }
-    }
-    else {
-        if( $p = $board{$to} )
-        {
-            $result = 0
-            if( ( $piece =~ /N/ and $p =~ /(R|Q|B|K|N|P)/ ) or
-                ( $piece =~ /n/ and $p =~ /(r|q|b|k|n|p)/ ) );
-        }
-    }
-
-    if ($p) {
-        if ( ( $piece =~ /RQB/ and $p =~ /RQBKNP/ )
-          or ( $piece =~ /rqb/ and $p =~ /rqbknp/ ) )
-        {
-            $result = 0;
         }
     }
     return $result;

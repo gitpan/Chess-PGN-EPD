@@ -72,3 +72,7 @@ Revision history for Perl extension Chess::PGN::EPD.
 	- create and export new sub, epdgetboard
       Sat Nov 30 07:49:37 2002
         - modified epdstr to add 'board' as parameter
+0.20  Wed Feb 12 17:20:00 2003
+        - small code improvements, maintainence release...
+0.21  Mon Mar 03 12:31:00 2003
+        - added internal check for legal move to patch pinned piece bug...
