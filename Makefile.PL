@@ -10,6 +10,7 @@ WriteMakefile(
 		Chess::PGN::Moves => 0.03,
 		DB_File => 1.73,
 		Test => 1.15,
+        Text::CSV => 0.01,
 	}, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM => 'EPD.pm', # retrieve abstract from module

@@ -41,7 +41,7 @@ our @EXPORT = qw(
 	&epdlist
     %font2map
 );
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 our %font2map = (
     'Chess Cases' => 'leschemelle',

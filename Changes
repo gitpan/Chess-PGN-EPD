@@ -64,3 +64,5 @@ Revision history for Perl extension Chess::PGN::EPD.
 	- put Makefile.PL back in the MANIFEST and therefore back in the distribution!
 0.17  Sun Jul 21 13:55:12 2002
 	- stamp out a bug related to knight moves
+0.18  Wed Aug 21 12:49:00 2002
+	- found a forgotten dependency
