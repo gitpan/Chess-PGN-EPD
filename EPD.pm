@@ -41,7 +41,7 @@ our @EXPORT = qw(
 	&epdlist
     %font2map
 );
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 our %font2map = (
     'Chess Cases' => 'leschemelle',
@@ -486,7 +486,6 @@ sub epdlist {
         if ($_) {
             my ( $piece, $to, $from, $promotion ) = movetype( $w, $_ );
             my $enpassant;
-            
             my $ep = '-';
             if ($debug) {
                 print "Move[$lineno]='$_'";
@@ -775,28 +774,6 @@ sub epd {
     return $epd;
 }
 
-sub shiftpos
-{
-    my ($pos, $ldirect, $rdirect ) = @_;
-    $pos =~ /(.)(.)/;
-
-    substr( $pos, 0, 1 ) =
-        chr( ord( substr( $pos, 0, 1 ) ) + $ldirect );
-    substr( $pos, 1, 1 ) = 
-        chr( ord( substr( $pos, 1, 1 ) ) + $rdirect );
-
-    return $pos;
-}
-
-sub inboard
-{
-    my ($pos) = @_;
-
-    $pos =~ /(.)(.)/; 
-    return ( ord( $1 ) <= ord( 'h' ) && ord( $1 ) >= ord( 'a')  &&
-             ord( $2 ) <= ord( '8' ) && ord( $2 ) >= ord( '1' ) );
-}
-
 sub canmove {
     my ( $piece, $to, $from, %board ) = @_;
     my $lto;
@@ -839,7 +816,7 @@ sub canmove {
             }
         }
     }
-    elsif( $piece =~ /(b|q)/i ) {
+    elsif ($piece =~ /[bq]/i) {
 
         if ( $rto lt $rfrom ) {
             $roffset = -1;
@@ -850,7 +827,7 @@ sub canmove {
         while ( $from ne $to ) {
             substr( $from, 0, 1 ) =
               chr( ord( substr( $from, 0, 1 ) ) + $loffset );
-            substr( $from, 1, 1 ) = 
+            substr( $from, 1, 1 ) =
               chr( ord( substr( $from, 1, 1 ) ) + $roffset );
             if ( $p = $board{$from} ) {
 
@@ -861,8 +838,7 @@ sub canmove {
             }
         }
     }
-    if( $piece =~ /n/i )
-    {
+    else {
         if( $p = $board{$to} )
         {
             $result = 0
@@ -872,53 +848,15 @@ sub canmove {
     }
 
     if ($p) {
-        if ( ( $piece =~ /(R|Q|B)/ and $p =~ /(R|Q|B|K|N|P)/ )
-          or ( $piece =~ /(r|q|b)/ and $p =~ /(r|q|b|k|n|p)/ ) )
+        if ( ( $piece =~ /RQB/ and $p =~ /RQBKNP/ )
+          or ( $piece =~ /rqb/ and $p =~ /rqbknp/ ) )
         {
             $result = 0;
         }
     }
-    return $result if( $result == 0 );
-    #
-    # Check for check ;)
-    #  
-    my $king = ( $piece eq lc( $piece ) ) ? "k" : "K";
-    my $kingpos;
-    my %tmpboard = %board;
-    $tmpboard{$to} = $tmpboard{$from};
-    undef $tmpboard{$from};
-
-    foreach (keys %board)
-    {
-        $kingpos = $_ if( $tmpboard{$_} && $tmpboard{$_} eq $king );
-    }
-
-    return $result if( !$kingpos );
-
-    my @ldirects = (  1,  0,  1, -1,  0, -1, -1,  1 );
-    my @rdirects = (  0,  1,  1,  0, -1, -1,  1, -1 );
-    my @patterns = ( '(R|Q)', '(R|Q)', '(B|Q)', '(R|Q)', '(R|Q)', '(B|Q)', '(B|Q)', '(B|Q)' );
-    
- 
-    for my $k ( 0 .. $#ldirects )
-    {
-        $patterns[$k] = lc( $patterns[$k] ) if( $king =~ /K/ );
-        my $pos = shiftpos( $kingpos, $ldirects[$k], $rdirects[$k] );        
-        while( inboard( $pos ) && !$tmpboard{$pos} )
-        {
-            $pos = shiftpos( $pos, $ldirects[$k], $rdirects[$k] );
-        }
-        if( inboard( $pos ) )
-        {
-            if( $tmpboard{$pos} =~ /$patterns[$k]/ )
-            {
-                return 0;
-            }
-        }
-    }
-    
     return $result;
 }
+
 
 1;
 __END__
