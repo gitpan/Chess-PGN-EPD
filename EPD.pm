@@ -42,7 +42,7 @@ our @EXPORT = qw(
     &epdstr
 	&epdlist
 );
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 my %board;
 my $Kc;
@@ -233,6 +233,23 @@ my %FontMap = (
     },
 );
 
+my %convertPalView = (
+    'r','<IMG SRC="jpc/br.gif">',
+    'n','<IMG SRC="jpc/bn.gif">',
+    'b','<IMG SRC="jpc/bb.gif">',
+    'q','<IMG SRC="jpc/bq.gif">',
+    'k','<IMG SRC="jpc/bk.gif">',
+    'p','<IMG SRC="jpc/bp.gif">',
+    'R','<IMG SRC="jpc/wr.gif">',
+    'N','<IMG SRC="jpc/wn.gif">',
+    'B','<IMG SRC="jpc/wb.gif">',
+    'Q','<IMG SRC="jpc/wq.gif">',
+    'K','<IMG SRC="jpc/wk.gif">',
+    'P','<IMG SRC="jpc/wp.gif">',
+    ' ','<IMG SRC="jpc/i.gif">',
+    '-','<IMG SRC="jpc/i.gif">',
+);
+
 sub epdcode {
     my $file = shift;
     my $epd = shift;
@@ -319,6 +336,31 @@ sub epdstr {
             push(@board, 8 - $_ . "  " . $array[$_]);
         }
         push(@board,'   abcdefgh');
+    }
+    elsif ($type eq 'text') {
+        foreach  (0..7) {
+            $array[$_] =~ s/(\d+)/'_' x $1/ge;
+            $array[$_] =~ s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '-' : ' '/ge;
+            push(@board,$array[$_]);
+        }
+    }
+    elsif ($type eq 'palview') {
+        my @diagram;
+        my $table;
+
+        foreach  (0..7) {
+            $array[$_] =~ s/(\d+)/'_' x $1/ge;
+            $array[$_] =~ s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '-' : ' '/ge;
+            push(@diagram,$array[$_]);
+        }
+        foreach  (@diagram) {
+            foreach  (split(//)) {
+                $table .= $convertPalView{$_};
+            }
+            $table .= "<BR>";
+            push(@board,$table);
+            $table = '';
+        }
     }
     elsif ($type eq 'latex') {
         push(@board,'\\begin{diagram}');
@@ -790,7 +832,6 @@ Chess::PGN::EPD - Perl extension to produce and manipulate EPD text.
 
  #!/usr/bin/perl
  #
- # epd1.pl -- program to generate epd from .PGN
  #
  use warnings;
  use strict;
@@ -809,7 +850,6 @@ B<OR>
 
  #!/usr/bin/perl
  #
- # epd2.pl -- program to generate epd from .PGN
  #
  use warnings;
  use strict;
@@ -822,7 +862,6 @@ B<OR>
 
  #!/usr/bin/perl
  #
- # epd3.pl -- Subroutine version to be added to EPD
  #
  use strict;
  use warnings;
@@ -898,6 +937,33 @@ A plain ASCII diagram with simple border showing rank and file. Typical output:
  2  PPPP PPP
  1  RNBQKBNR
     abcdefgh
+
+=item 'text'
+
+A plain ASCII diagram. Typical output:
+
+ rnbqkb r
+ ppp pppp
+  - - n -
+ - -P- - 
+  - - - -
+ - - - - 
+ PPPP PPP
+ RNBQKBNR
+
+=item 'palview'
+
+An array of HTML information that represents the tabular diagram information for PalView.
+Typical output:
+
+<IMG SRC="jpc/br.gif"><IMG SRC="jpc/bn.gif"><IMG SRC="jpc/bb.gif"><IMG SRC="jpc/bq.gif"><IMG SRC="jpc/bk.gif"><IMG SRC="jpc/bb.gif"><IMG SRC="jpc/bn.gif"><IMG SRC="jpc/br.gif"><BR>
+<IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><BR>
+<IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><BR>
+<IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><BR>
+<IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><BR>
+<IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/wn.gif"><BR>
+<IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><BR>
+<IMG SRC="jpc/wr.gif"><IMG SRC="jpc/wn.gif"><IMG SRC="jpc/wb.gif"><IMG SRC="jpc/wq.gif"><IMG SRC="jpc/wk.gif"><IMG SRC="jpc/wb.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/wr.gif"><BR>
 
 =item 'latex'
 
@@ -1315,8 +1381,6 @@ a module named after a swamp?!
 =item oo-ify support variables.
 
 =item Allow font map customization.
-
-=item Add taxonomy - given move list come up with ECO, NIC and descriptive opening name.
 
 =back
 
