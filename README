@@ -1,4 +1,4 @@
-Chess/PGN/EPD version 0.12
+Chess/PGN/EPD version 0.15
 ==========================
 
 CHESS::PGN::EPD - Perl extension to produce and manipulate EPD text.
@@ -11,33 +11,6 @@ To install this module type the following:
    make
    make test
    make install
-
-NOTE: if you see the following (adapted accordingly)
-
-Checking if your kit is complete...
-Warning: the following files are missing in your kit:
-        db\ECO
-        db\NIC
-        db\Opening
-Please inform the author.
-Writing Makefile for Chess::PGN::EPD
-
-everything is alright. It's telling you that you haven't yet
-run the next step yet. Which should look something like:
-
-$>nmake
-
-Microsoft (R) Program Maintenance Utility   Version 6.00.8168.0
-Copyright (C) Microsoft Corp 1988-1998. All rights reserved.
-
-cp EPD.pm blib\lib\Chess\PGN\EPD.pm
-        C:\Perl\bin\perl.exe scripts/db.pl
-Building ECO ok
-Building NIC ok
-Building Opening ok
-
-At some point I'll figure out how to avoid
-the warning message. Till then, ignore it...
 
 DOCUMENTATION
 

@@ -1,9 +1,9 @@
 Changes
 EPD.pm
-Makefile.PL
 MANIFEST
 README
 test.pl
-db\ECO
-db\NIC
-db\Opening
+CSV/ECO.txt
+CSV/NIC.txt
+CSV/Opening.txt
+scripts/db.pl
