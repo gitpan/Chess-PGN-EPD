@@ -5,28 +5,35 @@ use strict;
 use warnings;
 use Chess::PGN::Moves;
 use DB_File;
+use File::Spec::Functions;
 use Data::Dumper;
 
 require Exporter;
 
-my $db_path = './db/';
 my (%hECO,%hNIC,%hOpening);
 my %hash = (ECO => \%hECO,
     NIC => \%hNIC,
-    Opening => \%hOpening);
+    Opening => \%hOpening,
+    );
 
-foreach  (@INC) {
-    if (-d "$_/Chess/PGN/db") {
-        $db_path = "$_/Chess/PGN/db/";
+my $db_path = '';
+for (keys %INC) {
+    if (/parse/i) {
+        $db_path = $INC{$_};
+        $db_path =~ s/parse\.pm$/db\//i;
         last;
     }
 }
-tie %hECO, "DB_File", $db_path . 'ECO', O_RDONLY, 0664, $DB_HASH
-    or die "Couldn't open '${db_path}ECO': $!\n";
-tie %hNIC, "DB_File", $db_path . 'NIC', O_RDONLY, 0664, $DB_HASH
-    or die "Couldn't open '${db_path}NIC': $!\n";
-tie %hOpening, "DB_File", $db_path . 'Opening', O_RDONLY, 0664, $DB_HASH
-    or die "Couldn't open '${db_path}Opening': $!\n";
+my $ECO_path = $db_path . 'ECO';
+my $NIC_path = $db_path .'NIC';
+my $Opening_path = $db_path .'Opening';
+
+tie %hECO, "DB_File",$ECO_path , O_RDONLY, 0664, $DB_HASH
+    or die "Couldn't tie '$ECO_path': $!\n";
+tie %hNIC, "DB_File", $NIC_path, O_RDONLY, 0664, $DB_HASH
+    or die "Couldn't tie '$NIC_path': $!\n";
+tie %hOpening, "DB_File", $Opening_path, O_RDONLY, 0664, $DB_HASH
+    or die "Couldn't tie '$Opening_path': $!\n";
 
 END {
     untie %hECO;
@@ -39,12 +46,12 @@ our @EXPORT = qw(
     &epdcode
     &epdset
     &epdstr
-	&epdlist
+    &epdlist
     &epdgetboard
     &psquares
     %font2map
 );
-our $VERSION = '0.21';
+our $VERSION = '0.23';
 
 our %font2map = (
     'Chess Cases' => 'leschemelle',
@@ -288,9 +295,9 @@ sub epdcode {
     my $code;
     my $h = $hash{$file} or die "Unknown option '$file': $!\n";
 
-    foreach  (@{$epd}) {
-        $code = %{$h}->{$_};
-        last if $code;
+    for  (@$epd) {
+#        $code = %{$h}->{$_};
+#        last if $code;
     }
     return ($code or 'Unknown');
 }
@@ -305,18 +312,18 @@ sub epdset {
         $Qc = 0;
         $kc = 0;
         $qc = 0;
-        foreach  (0..7) {
+        for  (0..7) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
             my @row = split('',$array[$_]);
             my $rank = 'a';
-            foreach my $piece (@row) {
+            for my $piece (@row) {
                 $board{"$rank$file"} = $piece if $piece ne '_';
                 $rank++;
             }
             $file--;
         }
         $w = ($array[8] eq 'w');
-        foreach  (split('',$array[9])) {
+        for  (split('',$array[9])) {
             if ($_ eq 'K') {
                 $Kc = 1;
             }
@@ -356,7 +363,7 @@ sub epdstr {
         my %board;
         my $hashref = $parameters{'board'};
 
-        foreach (keys %$hashref) {
+        for (keys %$hashref) {
             $board{$_} = $$hashref{$_};
         }
         $parameters{'epd'} = epd( 0,0,0,0,0,0,%board );
@@ -371,7 +378,7 @@ sub epdstr {
     my @array = split(/\/|\s/,$epd);
     my @board;
     if ($type eq 'diagram') {
-        foreach  (0..7) {
+        for  (0..7) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
             $array[$_] =~ s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '-' : ' '/ge;
             push(@board, 8 - $_ . "  " . $array[$_]);
@@ -379,7 +386,7 @@ sub epdstr {
         push(@board,'   abcdefgh');
     }
     elsif ($type eq 'text') {
-        foreach  (0..7) {
+        for  (0..7) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
             $array[$_] =~ s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '-' : ' '/ge;
             push(@board,$array[$_]);
@@ -389,13 +396,13 @@ sub epdstr {
         my @diagram;
         my $table;
 
-        foreach  (0..7) {
+        for  (0..7) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
             $array[$_] =~ s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '-' : ' '/ge;
             push(@diagram,$array[$_]);
         }
-        foreach  (@diagram) {
-            foreach  (split(//)) {
+        for  (@diagram) {
+            for  (split(//)) {
                 $table .= $convertPalView{$_};
             }
             $table .= "<BR>";
@@ -406,7 +413,7 @@ sub epdstr {
     elsif ($type eq 'latex') {
         push(@board,'\\begin{diagram}');
         push(@board,'\\board');
-        foreach  (0..7) {
+        for  (0..7) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
             $array[$_] =~ s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '*' : ' '/ge;
             push(@board,'{' . $array[$_] . '}');
@@ -414,7 +421,7 @@ sub epdstr {
         push(@board,'\\end{diagram}');
     }
     elsif ($type eq 'tilburg') {
-        foreach  (0..7) {
+        for  (0..7) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
             $array[$_] =~ s/([pnbrqkPNBRQK_])/mappiece(pos $array[$_],$_,$1,"\341\345\351\355\361\365\337\343\347\353\357\363\335","\340\344\350\354\360\364\336\342\346\352\356\362\334")/ge;
             push(@board,$array[$_]);
@@ -422,7 +429,7 @@ sub epdstr {
     }
     else {
         @board = configureboard($type,$border,$corner,$legend);
-        foreach  (0..7) {
+        for  (0..7) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
             $array[$_] =~ s/([pnbrqkPNBRQK_])/mappiece(pos $array[$_],$_,$1,$FontMap{$type}{'OnBlack'},$FontMap{$type}{'OnWhite'})/ge;
             substr($board[$_ + 1],1,8) = $array[$_];
@@ -501,7 +508,7 @@ sub epdlist {
         }
     }
     epdset();
-    foreach (@moves) {
+    for (@moves) {
         Print(%board) if $debug;
         if ($_) {
             my ( $piece, $to, $from, $promotion ) = movetype( $w, $_ );
@@ -614,14 +621,14 @@ sub epdlist {
                         print "\$from='$from'\n" if $from;
                     }
                     if ( $from =~ /[a-h]/ ) {
-                        foreach (@piece_at) {
+                        for (@piece_at) {
                             push ( @tmp, $_ )
                               if ( substr( $_, 0, 1 ) eq $from );
                         }
                     }
                     else {
 
-                        foreach (@piece_at) {
+                        for (@piece_at) {
                             push ( @tmp, $_ )
                               if ( substr( $_, 1, 1 ) eq $from );
                         }
@@ -629,8 +636,8 @@ sub epdlist {
                     @piece_at = @tmp;
                 }
 
-                foreach my $square (@piece_at) {
-                    foreach ( @{ $move_table{ uc($piece) }{$square} } ) {
+                for my $square (@piece_at) {
+                    for ( @{ $move_table{ uc($piece) }{$square} } ) {
                         push ( @fromlist, $square ) if $_ eq $to;
                     }
                 }
@@ -639,7 +646,7 @@ sub epdlist {
                     if ($debug) {
                         print "\@fromlist=", join ( ",", @fromlist ),"\n" if @fromlist;
                     }
-                    foreach (@fromlist) {
+                    for (@fromlist) {
                         if ( canmove( $piece, $to, $_, %board ) and isLegal($w,$_,$to,%board)) {
                             $from = $_;
                             last;
@@ -697,21 +704,21 @@ sub isLegal {
 
     ( $board_copy{$to}, $board_copy{$from} ) = ( $board_copy{$from}, undef );
     my $findking = $w ? 'K' : 'k';
-    foreach (keys %board_copy) {
+    for (keys %board_copy) {
         if ($board_copy{$_} and ($board_copy{$_} eq $findking)) {
             $kings_square = $_;
             last;
         }
     }
     my $mask = $w ? 'qrnbp' : 'QRNBP';
-    foreach my $square (keys %board_copy) {
+    for my $square (keys %board_copy) {
         if ($board_copy{$square} and $mask =~ /$board_copy{$square}/) {
-            foreach ( @{ $move_table{ uc($board_copy{$square}) }{$square} } ) {
+            for ( @{ $move_table{ uc($board_copy{$square}) }{$square} } ) {
                 push ( @attack_list, $square ) if $_ eq $kings_square;
             }
         }
     }
-    foreach (@attack_list) {
+    for (@attack_list) {
         if (canmove( $board_copy{$_}, $kings_square, $_, %board_copy )) {
             return 0;
         }
@@ -842,7 +849,7 @@ sub epd {
     my $piece;
     my $epd;
 
-    foreach ( 0..63) {
+    for ( 0..63) {
         if ( $_ and ( $_ % 8 ) == 0 ) {
             if ($n) {
                 $epd .= "$n";
@@ -881,88 +888,6 @@ sub epd {
     return $epd;
 }
 
-#sub canmove {
-#    my ( $piece, $to, $from, %board ) = @_;
-#    my $lto;
-#    my $rto;
-#    my $lfrom;
-#    my $rfrom;
-#    my $result = 1;
-#    my $p;
-#    my $offset  = 1;
-#    my $roffset = 1;
-#    my $loffset = 1;
-#    my $c       = 0;
-#
-#    $to =~ /(.)(.)/;
-#    $lto = $1;
-#    $rto = $2;
-#    $from =~ /(.)(.)/;
-#    $lfrom = $1;
-#    $rfrom = $2;
-#    if ( ( $rto eq $rfrom ) or ( $lto eq $lfrom ) ) {
-#
-#        if ( ( $rto eq $rfrom and $lto lt $lfrom )
-#          or ( $lto eq $lfrom and $rto lt $rfrom ) )
-#        {
-#            $offset = -1;
-#        }
-#
-#        if ( $lto eq $lfrom ) {
-#            $c = 1;
-#        }
-#        while ( $from ne $to ) {
-#            substr( $from, $c, 1 ) =
-#              chr( ord( substr( $from, $c, 1 ) ) + $offset );
-#
-#            if ( $p = $board{$from} ) {
-#                if ( $from ne $to ) {
-#                    $result = 0;
-#                }
-#                last;
-#            }
-#        }
-#    }
-#    elsif ($piece =~ /[bq]/i) {
-#
-#        if ( $rto lt $rfrom ) {
-#            $roffset = -1;
-#        }
-#        if ( $lto lt $lfrom ) {
-#            $loffset = -1;
-#        }
-#        while ( $from ne $to ) {
-#            substr( $from, 0, 1 ) =
-#              chr( ord( substr( $from, 0, 1 ) ) + $loffset );
-#            substr( $from, 1, 1 ) =
-#              chr( ord( substr( $from, 1, 1 ) ) + $roffset );
-#            if ( $p = $board{$from} ) {
-#
-#                if ( $from ne $to ) {
-#                    $result = 0;
-#                }
-#                last;
-#            }
-#        }
-#    }
-#    else {
-#        if( $p = $board{$to} )
-#        {
-#            $result = 0
-#            if( ( $piece =~ /N/ and $p =~ /(R|Q|B|K|N|P)/ ) or
-#                ( $piece =~ /n/ and $p =~ /(r|q|b|k|n|p)/ ) );
-#        }
-#    }
-#
-#    if ($p) {
-#        if ( ( $piece =~ /RQB/ and $p =~ /RQBKNP/ )
-#          or ( $piece =~ /rqb/ and $p =~ /rqbknp/ ) )
-#        {
-#            $result = 0;
-#        }
-#    }
-#    return $result;
-#}
 sub canmove {
     my ( $piece, $to, $from, %board) = @_;
     my $lto;

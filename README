@@ -1,4 +1,4 @@
-Chess/PGN/EPD version 0.21
+Chess/PGN/EPD version 0.22
 ==========================
 
 CHESS::PGN::EPD - Perl extension to produce and manipulate EPD text.
@@ -29,7 +29,7 @@ Text::CSV
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2002 Hugh S. Myers
+Copyright (C) 2003 Hugh S. Myers
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

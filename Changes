@@ -76,3 +76,10 @@ Revision history for Perl extension Chess::PGN::EPD.
         - small code improvements, maintainence release...
 0.21  Mon Mar 03 12:31:00 2003
         - added internal check for legal move to patch pinned piece bug...
+0.22  Tue Mar 04 07:51:37 2003
+        - small code improvements, maintainence release...
+	- added 3 tests to check for pinned piece bug
+0.23  Sat Apr 04 14:35:00 2009
+        - Patch problem with XP and forward slashes blocking database loading
+	- Patch problem with hashes that generates warnings (code will be depricated as well, so fix
+	  is needed!)
