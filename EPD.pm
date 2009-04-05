@@ -5,35 +5,43 @@ use strict;
 use warnings;
 use Chess::PGN::Moves;
 use DB_File;
-use File::Spec::Functions;
+use Cwd                   qw( realpath );
+use File::Spec::Functions qw( catdir );
 use Data::Dumper;
 
 require Exporter;
 
-my (%hECO,%hNIC,%hOpening);
-my %hash = (ECO => \%hECO,
-    NIC => \%hNIC,
+my ( %hECO, %hNIC, %hOpening );
+my %hash = (
+    ECO     => \%hECO,
+    NIC     => \%hNIC,
     Opening => \%hOpening,
-    );
+);
 
-my $db_path = '';
-for (keys %INC) {
-    if (/parse/i) {
-        $db_path = $INC{$_};
-        $db_path =~ s/parse\.pm$/db\//i;
-        last;
-    }
+
+my $mod = __PACKAGE__;
+$mod =~ s{::}{/}g;
+$mod .= '.pm';
+$mod = $INC{$mod};
+
+$mod =~ s/EPD\.pm//i;
+my $module_dir_qfn = realpath($mod);
+my $db_dir_qfn     = catdir($module_dir_qfn, 'db');
+
+unless (-d $db_dir_qfn) {
+    $db_dir_qfn = realpath('.\db');
 }
-my $ECO_path = $db_path . 'ECO';
-my $NIC_path = $db_path .'NIC';
-my $Opening_path = $db_path .'Opening';
 
-tie %hECO, "DB_File",$ECO_path , O_RDONLY, 0664, $DB_HASH
-    or die "Couldn't tie '$ECO_path': $!\n";
+my $ECO_path     = catdir($db_dir_qfn,'ECO');
+my $NIC_path     = catdir($db_dir_qfn,'NIC');
+my $Opening_path = catdir($db_dir_qfn,'Opening');
+
+tie %hECO, "DB_File", $ECO_path, O_RDONLY, 0664, $DB_HASH
+  or die "Couldn't tie '$ECO_path': $!\n";
 tie %hNIC, "DB_File", $NIC_path, O_RDONLY, 0664, $DB_HASH
-    or die "Couldn't tie '$NIC_path': $!\n";
+  or die "Couldn't tie '$NIC_path': $!\n";
 tie %hOpening, "DB_File", $Opening_path, O_RDONLY, 0664, $DB_HASH
-    or die "Couldn't tie '$Opening_path': $!\n";
+  or die "Couldn't tie '$Opening_path': $!\n";
 
 END {
     untie %hECO;
@@ -41,45 +49,45 @@ END {
     untie %hOpening;
 }
 
-our @ISA = qw(Exporter);
+our @ISA    = qw(Exporter);
 our @EXPORT = qw(
-    &epdcode
-    &epdset
-    &epdstr
-    &epdlist
-    &epdgetboard
-    &psquares
-    %font2map
+  &epdcode
+  &epdset
+  &epdstr
+  &epdlist
+  &epdgetboard
+  &psquares
+  %font2map
 );
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 our %font2map = (
-    'Chess Cases' => 'leschemelle',
-    'Chess Adventurer' => 'marroquin',
-    'Chess Alfonso-X' => 'marroquin',
-    'Chess Alpha' => 'bentzen1',
-    'Chess Berlin' => 'bentzen2',
-    'Chess Condal' => 'marroquin',
-    'Chess Harlequin' => 'marroquin',
-    'Chess Kingdom' => 'marroquin',
-    'Chess Leipzig' => 'marroquin',
-    'Chess Line' => 'marroquin',
-    'Chess Lucena' => 'marroquin',
-    'Chess Magnetic' => 'marroquin',
-    'Chess Mark' => 'marroquin',
-    'Chess Marroquin' => 'marroquin',
-    'Chess Maya' => 'marroquin',
-    'Chess Mediaeval' => 'marroquin',
-    'Chess Merida' => 'marroquin',
-    'Chess Millennia' => 'marroquin',
-    'Chess Miscel' => 'marroquin',
-    'Chess Montreal' => 'katch',
-    'Chess Motif' => 'marroquin',
-    'Chess Plain' => 'hickey',
-    'Chess Regular' => 'scott1',
-    'Chess Usual' => 'scott2',
-    'Chess Utrecht' => 'bodlaender',
-    'Tilburg' => 'tilburg',
+    'Chess Cases'           => 'leschemelle',
+    'Chess Adventurer'      => 'marroquin',
+    'Chess Alfonso-X'       => 'marroquin',
+    'Chess Alpha'           => 'bentzen1',
+    'Chess Berlin'          => 'bentzen2',
+    'Chess Condal'          => 'marroquin',
+    'Chess Harlequin'       => 'marroquin',
+    'Chess Kingdom'         => 'marroquin',
+    'Chess Leipzig'         => 'marroquin',
+    'Chess Line'            => 'marroquin',
+    'Chess Lucena'          => 'marroquin',
+    'Chess Magnetic'        => 'marroquin',
+    'Chess Mark'            => 'marroquin',
+    'Chess Marroquin'       => 'marroquin',
+    'Chess Maya'            => 'marroquin',
+    'Chess Mediaeval'       => 'marroquin',
+    'Chess Merida'          => 'marroquin',
+    'Chess Millennia'       => 'marroquin',
+    'Chess Miscel'          => 'marroquin',
+    'Chess Montreal'        => 'katch',
+    'Chess Motif'           => 'marroquin',
+    'Chess Plain'           => 'hickey',
+    'Chess Regular'         => 'scott1',
+    'Chess Usual'           => 'scott2',
+    'Chess Utrecht'         => 'bodlaender',
+    'Tilburg'               => 'tilburg',
     'Traveller Standard V3' => 'cowderoy',
 );
 
@@ -91,230 +99,240 @@ my $qc;
 my $w;
 
 my @onwhite = (
-    1,0,1,0,1,0,1,0,
-    0,1,0,1,0,1,0,1,
-    1,0,1,0,1,0,1,0,
-    0,1,0,1,0,1,0,1,
-    1,0,1,0,1,0,1,0,
-    0,1,0,1,0,1,0,1,
-    1,0,1,0,1,0,1,0,
-    0,1,0,1,0,1,0,1,
-    );
+    1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0,
+    1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1,
+    0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1,
+);
 
-my %FontMap = ( 
+my %FontMap = (
     hicky => {
-        OnBlack => 'OMASTLPNBRQK@',
-        OnWhite => 'omastlpnbrqk:',
-        SingleBox => '12345678',
-        DoubleBox => '!"#$%&\'(',
-        SingleRounded => '[]\^',
-        DoubleRounded => '<>;=/',
-        SingleLeftLegend => 'cdefghij',
-        DoubleLeftLegend => 'CDEFGHIJ',
+        OnBlack            => 'OMASTLPNBRQK@',
+        OnWhite            => 'omastlpnbrqk:',
+        SingleBox          => '12345678',
+        DoubleBox          => '!"#$%&\'(',
+        SingleRounded      => '[]\^',
+        DoubleRounded      => '<>;=/',
+        SingleLeftLegend   => 'cdefghij',
+        DoubleLeftLegend   => 'CDEFGHIJ',
         SingleBottomLegend => 'wxyz{|}~',
         DoubleBottomLegend => ')*+,-./0',
     },
     marroquin => {
-        OnBlack => 'OMVTWLPNBRQK+',
-        OnWhite => 'omvtwlpnbrqk ',
-        SingleBox => '12345789',
-        DoubleBox => '!"#$%/()',
-        SingleRounded => 'asdf',
-        DoubleRounded => 'ASDF',
-        SingleLeftLegend => "\300\301\302\303\034\305\306\307",
-        DoubleLeftLegend => "\340\341\342\343\344\345\346\347",
+        OnBlack            => 'OMVTWLPNBRQK+',
+        OnWhite            => 'omvtwlpnbrqk ',
+        SingleBox          => '12345789',
+        DoubleBox          => '!"#$%/()',
+        SingleRounded      => 'asdf',
+        DoubleRounded      => 'ASDF',
+        SingleLeftLegend   => "\300\301\302\303\034\305\306\307",
+        DoubleLeftLegend   => "\340\341\342\343\344\345\346\347",
         SingleBottomLegend => "\310\311\312\313\314\315\316\317",
         DoubleBottomLegend => "\350\351\352\353\354\355\356\357",
     },
     leschemelle => {
-        OnBlack => 'OMVTWLPNBRQK+',
-        OnWhite => 'omvtwlpnbrqk ',
-        SingleBox => '12345789',
-        DoubleBox => '!"#$%/()',
-        SingleRounded => 'asdf',
-        DoubleRounded => 'ASDF',
-        SingleLeftLegend => "\300\301\302\303\034\305\306\307",
-        DoubleLeftLegend => "\340\341\342\343\344\345\346\347",
+        OnBlack            => 'OMVTWLPNBRQK+',
+        OnWhite            => 'omvtwlpnbrqk ',
+        SingleBox          => '12345789',
+        DoubleBox          => '!"#$%/()',
+        SingleRounded      => 'asdf',
+        DoubleRounded      => 'ASDF',
+        SingleLeftLegend   => "\300\301\302\303\034\305\306\307",
+        DoubleLeftLegend   => "\340\341\342\343\344\345\346\347",
         SingleBottomLegend => "\310\311\312\313\314\315\316\317",
         DoubleBottomLegend => "\350\351\352\353\354\355\356\357",
     },
     linares => {
-        OnBlack => '0hg41i)HG$!Id',
-        OnWhite => 'pnbrqkPNBRQKw',
-        SingleBox => 'W_W[]W-W',
-        DoubleBox => 'cuC{}vlV',
-        SingleRounded => 'WWWW',
-        DoubleRounded => 'cCvV',
-        SingleLeftLegend => "\332\333\334\335\336\337\340\341",
-        DoubleLeftLegend => '(765&32%',
+        OnBlack            => '0hg41i)HG$!Id',
+        OnWhite            => 'pnbrqkPNBRQKw',
+        SingleBox          => 'W_W[]W-W',
+        DoubleBox          => 'cuC{}vlV',
+        SingleRounded      => 'WWWW',
+        DoubleRounded      => 'cCvV',
+        SingleLeftLegend   => "\332\333\334\335\336\337\340\341",
+        DoubleLeftLegend   => '(765&32%',
         SingleBottomLegend => "\301\302\303\304\305\306\307\310",
         DoubleBottomLegend => ',./9EFJM',
     },
     linares1 => {
-        OnBlack => '0hg41i)HG$!Id',
-        OnWhite => 'pnbrqkPNBRQKw',
-        SingleBox => '>;?:<A=@',
-        DoubleBox => '>;?:<A=@',
-        SingleRounded => '>?A@',
-        DoubleRounded => '>?A@',
-        SingleLeftLegend => '::::::::',
-        DoubleLeftLegend => '::::::::',
+        OnBlack            => '0hg41i)HG$!Id',
+        OnWhite            => 'pnbrqkPNBRQKw',
+        SingleBox          => '>;?:<A=@',
+        DoubleBox          => '>;?:<A=@',
+        SingleRounded      => '>?A@',
+        DoubleRounded      => '>?A@',
+        SingleLeftLegend   => '::::::::',
+        DoubleLeftLegend   => '::::::::',
         SingleBottomLegend => '========',
         DoubleBottomLegend => '========',
     },
     linares2 => {
-        OnBlack => '0hg41i)HG$!Id',
-        OnWhite => 'pnbrqkPNBRQKw',
-        SingleBox => '^xY|yUz\\',
-        DoubleBox => '^xY|yUz\\',
-        SingleRounded => '^YU\\',
-        DoubleRounded => '^YU\\',
-        SingleLeftLegend => '||||||||',
-        DoubleLeftLegend => '||||||||',
+        OnBlack            => '0hg41i)HG$!Id',
+        OnWhite            => 'pnbrqkPNBRQKw',
+        SingleBox          => '^xY|yUz\\',
+        DoubleBox          => '^xY|yUz\\',
+        SingleRounded      => '^YU\\',
+        DoubleRounded      => '^YU\\',
+        SingleLeftLegend   => '||||||||',
+        DoubleLeftLegend   => '||||||||',
         SingleBottomLegend => 'zzzzzzzz',
         DoubleBottomLegend => 'zzzzzzzz',
     },
     cowderoy => {
-        OnBlack => '$#!&%"*)\',+(0',
-        OnWhite => 'pnbrqkPNBRQK ',
-        SingleBox => '78946123',
-        DoubleBox => '78946123',
-        SingleRounded => '7913',
-        DoubleRounded => '7913',
-        SingleLeftLegend => '44444444',
-        DoubleLeftLegend => '44444444',
+        OnBlack            => '$#!&%"*)\',+(0',
+        OnWhite            => 'pnbrqkPNBRQK ',
+        SingleBox          => '78946123',
+        DoubleBox          => '78946123',
+        SingleRounded      => '7913',
+        DoubleRounded      => '7913',
+        SingleLeftLegend   => '44444444',
+        DoubleLeftLegend   => '44444444',
         SingleBottomLegend => '22222222',
         DoubleBottomLegend => '22222222',
     },
     bentzen1 => {
-        OnBlack => 'OJNTWLPHBRQK+',
-        OnWhite => 'ojntwlphbrqk ',
-        SingleBox => '!"#$%&\'(',
-        DoubleBox => '12345789',
-        SingleRounded => '!#&(',
-        DoubleRounded => '1379',
-        SingleLeftLegend => "\340\341\342\343\344\345\346\347",
-        DoubleLeftLegend => "\300\301\302\303\304\305\306\307",
+        OnBlack            => 'OJNTWLPHBRQK+',
+        OnWhite            => 'ojntwlphbrqk ',
+        SingleBox          => '!"#$%&\'(',
+        DoubleBox          => '12345789',
+        SingleRounded      => '!#&(',
+        DoubleRounded      => '1379',
+        SingleLeftLegend   => "\340\341\342\343\344\345\346\347",
+        DoubleLeftLegend   => "\300\301\302\303\304\305\306\307",
         SingleBottomLegend => "\350\351\352\353\354\355\356\357",
         DoubleBottomLegend => "\310\311\312\313\314\315\316\317",
     },
     bentzen2 => {
-        OnBlack => 'OJNTWLPHBRQK+',
-        OnWhite => 'ojntwlphbrqk ',
-        SingleBox => '12345789',
-        DoubleBox => '12345789',
-        SingleRounded => '1379',
-        DoubleRounded => '1379',
-        SingleLeftLegend => '44444444',
-        DoubleLeftLegend => '44444444',
+        OnBlack            => 'OJNTWLPHBRQK+',
+        OnWhite            => 'ojntwlphbrqk ',
+        SingleBox          => '12345789',
+        DoubleBox          => '12345789',
+        SingleRounded      => '1379',
+        DoubleRounded      => '1379',
+        SingleLeftLegend   => '44444444',
+        DoubleLeftLegend   => '44444444',
         SingleBottomLegend => '88888888',
         DoubleBottomLegend => '88888888',
     },
     scott1 => {
-        OnBlack => 'OJNTWLPHBRQK+',
-        OnWhite => 'ojntwlphbrqk*',
-        SingleBox => '(-)/\[_]',
-        DoubleBox => '(-)/\[_]',
-        SingleRounded => '(-)/\[_]',
-        DoubleRounded => '(-)/\[_]',
-        SingleLeftLegend => '////////',
-        DoubleLeftLegend => '////////',
+        OnBlack            => 'OJNTWLPHBRQK+',
+        OnWhite            => 'ojntwlphbrqk*',
+        SingleBox          => '(-)/\[_]',
+        DoubleBox          => '(-)/\[_]',
+        SingleRounded      => '(-)/\[_]',
+        DoubleRounded      => '(-)/\[_]',
+        SingleLeftLegend   => '////////',
+        DoubleLeftLegend   => '////////',
         SingleBottomLegend => '________',
         DoubleBottomLegend => '________',
     },
     scott2 => {
-        OnBlack => 'OMVTWLPNBRQK+',
-        OnWhite => 'omvtwlpnbrqk ',
-        SingleBox => '12345789',
-        DoubleBox => '!"#$%/()',
-        SingleRounded => 'asdf',
-        DoubleRounded => 'ASDF',
-        SingleLeftLegend => '44444444',
-        DoubleLeftLegend => '$$$$$$$$',
+        OnBlack            => 'OMVTWLPNBRQK+',
+        OnWhite            => 'omvtwlpnbrqk ',
+        SingleBox          => '12345789',
+        DoubleBox          => '!"#$%/()',
+        SingleRounded      => 'asdf',
+        DoubleRounded      => 'ASDF',
+        SingleLeftLegend   => '44444444',
+        DoubleLeftLegend   => '$$$$$$$$',
         SingleBottomLegend => '44444444',
         DoubleBottomLegend => '$$$$$$$$',
     },
     bodlaender => {
-        OnBlack => 'OMVTWLomvtwl/',
-        OnWhite => 'PNBRQKpnbrqk ',
-        SingleBox => '51632748',
-        DoubleBox => '51632748',
-        SingleRounded => '51632748',
-        DoubleRounded => '51632748',
-        SingleLeftLegend => '33333333',
-        DoubleLeftLegend => '33333333',
+        OnBlack            => 'OMVTWLomvtwl/',
+        OnWhite            => 'PNBRQKpnbrqk ',
+        SingleBox          => '51632748',
+        DoubleBox          => '51632748',
+        SingleRounded      => '51632748',
+        DoubleRounded      => '51632748',
+        SingleLeftLegend   => '33333333',
+        DoubleLeftLegend   => '33333333',
         SingleBottomLegend => '44444444',
         DoubleBottomLegend => '44444444',
     },
     katch => {
-        OnBlack => 'OMVTWLPNBRQK/',
-        OnWhite => 'omvtwlpnbrqk ',
-        SingleBox => '12345789',
-        DoubleBox => '12345789',
-        SingleRounded => '12345789',
-        DoubleRounded => '12345789',
-        SingleLeftLegend => '44444444',
-        DoubleLeftLegend => '44444444',
+        OnBlack            => 'OMVTWLPNBRQK/',
+        OnWhite            => 'omvtwlpnbrqk ',
+        SingleBox          => '12345789',
+        DoubleBox          => '12345789',
+        SingleRounded      => '12345789',
+        DoubleRounded      => '12345789',
+        SingleLeftLegend   => '44444444',
+        DoubleLeftLegend   => '44444444',
         SingleBottomLegend => '88888888',
         DoubleBottomLegend => '88888888',
     },
     dummy => {
-        OnBlack => '',
-        OnWhite => '',
-        SingleBox => '',
-        DoubleBox => '',
-        SingleRounded => '',
-        DoubleRounded => '',
-        SingleLeftLegend => '',
-        DoubleLeftLegend => '',
+        OnBlack            => '',
+        OnWhite            => '',
+        SingleBox          => '',
+        DoubleBox          => '',
+        SingleRounded      => '',
+        DoubleRounded      => '',
+        SingleLeftLegend   => '',
+        DoubleLeftLegend   => '',
         SingleBottomLegend => '',
         DoubleBottomLegend => '',
     },
 );
 
 my %convertPalView = (
-    'r','<IMG SRC="jpc/br.gif">',
-    'n','<IMG SRC="jpc/bn.gif">',
-    'b','<IMG SRC="jpc/bb.gif">',
-    'q','<IMG SRC="jpc/bq.gif">',
-    'k','<IMG SRC="jpc/bk.gif">',
-    'p','<IMG SRC="jpc/bp.gif">',
-    'R','<IMG SRC="jpc/wr.gif">',
-    'N','<IMG SRC="jpc/wn.gif">',
-    'B','<IMG SRC="jpc/wb.gif">',
-    'Q','<IMG SRC="jpc/wq.gif">',
-    'K','<IMG SRC="jpc/wk.gif">',
-    'P','<IMG SRC="jpc/wp.gif">',
-    ' ','<IMG SRC="jpc/i.gif">',
-    '-','<IMG SRC="jpc/i.gif">',
+    'r',
+    '<IMG SRC="jpc/br.gif">',
+    'n',
+    '<IMG SRC="jpc/bn.gif">',
+    'b',
+    '<IMG SRC="jpc/bb.gif">',
+    'q',
+    '<IMG SRC="jpc/bq.gif">',
+    'k',
+    '<IMG SRC="jpc/bk.gif">',
+    'p',
+    '<IMG SRC="jpc/bp.gif">',
+    'R',
+    '<IMG SRC="jpc/wr.gif">',
+    'N',
+    '<IMG SRC="jpc/wn.gif">',
+    'B',
+    '<IMG SRC="jpc/wb.gif">',
+    'Q',
+    '<IMG SRC="jpc/wq.gif">',
+    'K',
+    '<IMG SRC="jpc/wk.gif">',
+    'P',
+    '<IMG SRC="jpc/wp.gif">',
+    ' ',
+    '<IMG SRC="jpc/i.gif">',
+    '-',
+    '<IMG SRC="jpc/i.gif">',
 );
 
 sub epdcode {
     my $file = shift;
-    my $epd = shift;
+    my $epd  = shift;
     my $code;
     my $h = $hash{$file} or die "Unknown option '$file': $!\n";
 
-    for  (@$epd) {
+    for (@$epd) {
 #        $code = %{$h}->{$_};
-#        last if $code;
+        $code = $h->{$_};
+        last if $code;
     }
-    return ($code or 'Unknown');
+    return ( $code or 'Unknown' );
 }
 
 sub epdset {
-    if (my $epd = shift) {
-        my @array = split(/\/|\s/,$epd);
+    if ( my $epd = shift ) {
+        my @array = split( /\/|\s/, $epd );
         my $file = '8';
 
         %board = ();
-        $Kc = 0;
-        $Qc = 0;
-        $kc = 0;
-        $qc = 0;
-        for  (0..7) {
+        $Kc    = 0;
+        $Qc    = 0;
+        $kc    = 0;
+        $qc    = 0;
+        for ( 0 .. 7 ) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
-            my @row = split('',$array[$_]);
+            my @row = split( '', $array[$_] );
             my $rank = 'a';
             for my $piece (@row) {
                 $board{"$rank$file"} = $piece if $piece ne '_';
@@ -322,32 +340,32 @@ sub epdset {
             }
             $file--;
         }
-        $w = ($array[8] eq 'w');
-        for  (split('',$array[9])) {
-            if ($_ eq 'K') {
+        $w = ( $array[8] eq 'w' );
+        for ( split( '', $array[9] ) ) {
+            if ( $_ eq 'K' ) {
                 $Kc = 1;
             }
-            elsif ($_ eq 'Q') {
+            elsif ( $_ eq 'Q' ) {
                 $Qc = 1;
             }
-            elsif ($_ eq 'k') {
+            elsif ( $_ eq 'k' ) {
                 $kc = 1;
             }
-            elsif ($_ eq 'q') {
+            elsif ( $_ eq 'q' ) {
                 $qc = 1;
             }
         }
     }
     else {
         %board = qw(
-          a1 R a2 P a7 p a8 r 
-          b1 N b2 P b7 p b8 n 
-          c1 B c2 P c7 p c8 b 
-          d1 Q d2 P d7 p d8 q 
-          e1 K e2 P e7 p e8 k 
-          f1 B f2 P f7 p f8 b 
-          g1 N g2 P g7 p g8 n 
-          h1 R h2 P h7 p h8 r 
+          a1 R a2 P a7 p a8 r
+          b1 N b2 P b7 p b8 n
+          c1 B c2 P c7 p c8 b
+          d1 Q d2 P d7 p d8 q
+          e1 K e2 P e7 p e8 k
+          f1 B f2 P f7 p f8 b
+          g1 N g2 P g7 p g8 n
+          h1 R h2 P h7 p h8 r
         );
         $w  = 1;
         $Kc = 1;
@@ -359,130 +377,147 @@ sub epdset {
 
 sub epdstr {
     my %parameters = @_;
-    if ($parameters{'board'}) {
+    if ( $parameters{'board'} ) {
         my %board;
         my $hashref = $parameters{'board'};
 
-        for (keys %$hashref) {
+        for ( keys %$hashref ) {
             $board{$_} = $$hashref{$_};
         }
-        $parameters{'epd'} = epd( 0,0,0,0,0,0,%board );
+        $parameters{'epd'} = epd( 0, 0, 0, 0, 0, 0, %board );
     }
-    my $epd = $parameters{'epd'} or die "Missing epd parameter: $!\n";
-    my $type = lc($parameters{'type'}) or die "Missing type parameter: $!\n";
-    my ($border,$corner,$legend) = ('single','square','no');
+    my $epd  = $parameters{'epd'}        or die "Missing epd parameter: $!\n";
+    my $type = lc( $parameters{'type'} ) or die "Missing type parameter: $!\n";
+    my ( $border, $corner, $legend ) = ( 'single', 'square', 'no' );
 
-    $border = lc($parameters{'border'}) if exists($parameters{'border'});
-    $corner = lc($parameters{'corner'}) if exists($parameters{'corner'});
-    $legend = lc($parameters{'legend'}) if exists($parameters{'legend'});
-    my @array = split(/\/|\s/,$epd);
+    $border = lc( $parameters{'border'} ) if exists( $parameters{'border'} );
+    $corner = lc( $parameters{'corner'} ) if exists( $parameters{'corner'} );
+    $legend = lc( $parameters{'legend'} ) if exists( $parameters{'legend'} );
+    my @array = split( /\/|\s/, $epd );
     my @board;
-    if ($type eq 'diagram') {
-        for  (0..7) {
+    if ( $type eq 'diagram' ) {
+        for ( 0 .. 7 ) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
-            $array[$_] =~ s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '-' : ' '/ge;
-            push(@board, 8 - $_ . "  " . $array[$_]);
+            $array[$_] =~
+              s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '-' : ' '/ge;
+            push( @board, 8 - $_ . "  " . $array[$_] );
         }
-        push(@board,'   abcdefgh');
+        push( @board, '   abcdefgh' );
     }
-    elsif ($type eq 'text') {
-        for  (0..7) {
+    elsif ( $type eq 'text' ) {
+        for ( 0 .. 7 ) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
-            $array[$_] =~ s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '-' : ' '/ge;
-            push(@board,$array[$_]);
+            $array[$_] =~
+              s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '-' : ' '/ge;
+            push( @board, $array[$_] );
         }
     }
-    elsif ($type eq 'palview') {
+    elsif ( $type eq 'palview' ) {
         my @diagram;
         my $table;
 
-        for  (0..7) {
+        for ( 0 .. 7 ) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
-            $array[$_] =~ s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '-' : ' '/ge;
-            push(@diagram,$array[$_]);
+            $array[$_] =~
+              s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '-' : ' '/ge;
+            push( @diagram, $array[$_] );
         }
-        for  (@diagram) {
-            for  (split(//)) {
+        for (@diagram) {
+            for ( split(//) ) {
                 $table .= $convertPalView{$_};
             }
             $table .= "<BR>";
-            push(@board,$table);
+            push( @board, $table );
             $table = '';
         }
     }
-    elsif ($type eq 'latex') {
-        push(@board,'\\begin{diagram}');
-        push(@board,'\\board');
-        for  (0..7) {
+    elsif ( $type eq 'latex' ) {
+        push( @board, '\\begin{diagram}' );
+        push( @board, '\\board' );
+        for ( 0 .. 7 ) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
-            $array[$_] =~ s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '*' : ' '/ge;
-            push(@board,'{' . $array[$_] . '}');
+            $array[$_] =~
+              s/_/(((pos $array[$_]) % 2) xor ($_ % 2)) ? '*' : ' '/ge;
+            push( @board, '{' . $array[$_] . '}' );
         }
-        push(@board,'\\end{diagram}');
+        push( @board, '\\end{diagram}' );
     }
-    elsif ($type eq 'tilburg') {
-        for  (0..7) {
+    elsif ( $type eq 'tilburg' ) {
+        for ( 0 .. 7 ) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
-            $array[$_] =~ s/([pnbrqkPNBRQK_])/mappiece(pos $array[$_],$_,$1,"\341\345\351\355\361\365\337\343\347\353\357\363\335","\340\344\350\354\360\364\336\342\346\352\356\362\334")/ge;
-            push(@board,$array[$_]);
+            $array[$_] =~
+s/([pnbrqkPNBRQK_])/mappiece(pos $array[$_],$_,$1,"\341\345\351\355\361\365\337\343\347\353\357\363\335","\340\344\350\354\360\364\336\342\346\352\356\362\334")/ge;
+            push( @board, $array[$_] );
         }
     }
     else {
-        @board = configureboard($type,$border,$corner,$legend);
-        for  (0..7) {
+        @board = configureboard( $type, $border, $corner, $legend );
+        for ( 0 .. 7 ) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
-            $array[$_] =~ s/([pnbrqkPNBRQK_])/mappiece(pos $array[$_],$_,$1,$FontMap{$type}{'OnBlack'},$FontMap{$type}{'OnWhite'})/ge;
-            substr($board[$_ + 1],1,8) = $array[$_];
+            $array[$_] =~
+s/([pnbrqkPNBRQK_])/mappiece(pos $array[$_],$_,$1,$FontMap{$type}{'OnBlack'},$FontMap{$type}{'OnWhite'})/ge;
+            substr( $board[ $_ + 1 ], 1, 8 ) = $array[$_];
         }
     }
     return @board;
 }
 
 sub configureboard {
-    my $type = shift;
+    my $type   = shift;
     my $border = shift;
     my $corner = shift;
     my $legend = shift;
     my $single = $border eq 'single';
-    my $box = $FontMap{$type}{$single ? 'SingleBox' : 'DoubleBox'};
+    my $box    = $FontMap{$type}{ $single ? 'SingleBox' : 'DoubleBox' };
     my @board;
 
-    if ($corner eq 'rounded') {
-        my $corners = $FontMap{$type}{$single ? 'SingleRounded' : 'DoubleRounded'};
+    if ( $corner eq 'rounded' ) {
+        my $corners =
+          $FontMap{$type}{ $single ? 'SingleRounded' : 'DoubleRounded' };
 
-        substr($box,0,1) = substr($corners,0,1);
-        substr($box,2,1) = substr($corners,1,1);
-        substr($box,5,1) = substr($corners,2,1);
-        substr($box,7,1) = substr($corners,3,1);
+        substr( $box, 0, 1 ) = substr( $corners, 0, 1 );
+        substr( $box, 2, 1 ) = substr( $corners, 1, 1 );
+        substr( $box, 5, 1 ) = substr( $corners, 2, 1 );
+        substr( $box, 7, 1 ) = substr( $corners, 3, 1 );
     }
-    push(@board,substr($box,0,1) . substr($box,1,1) x 8 . substr($box,2,1));
-    for(0..7) {
-        push(@board,substr($box,3,1) . ' ' x 8 . substr($box,4,1));
+    push( @board,
+            substr( $box, 0, 1 )
+          . substr( $box, 1, 1 ) x 8
+          . substr( $box, 2, 1 ) );
+    for ( 0 .. 7 ) {
+        push( @board, substr( $box, 3, 1 ) . ' ' x 8 . substr( $box, 4, 1 ) );
     }
-    push(@board,substr($box,5,1) . substr($box,6,1) x 8 . substr($box,7,1));
-    if ($legend eq 'yes') {
-        my $left = $FontMap{$type}{$single ? 'SingleLeftLegend' : 'DoubleLeftLegend'};
-        my $bottom = $FontMap{$type}{$single ? 'SingleBottomLegend' : 'DoubleBottomLegend'};
+    push( @board,
+            substr( $box, 5, 1 )
+          . substr( $box, 6, 1 ) x 8
+          . substr( $box, 7, 1 ) );
+    if ( $legend eq 'yes' ) {
+        my $left =
+          $FontMap{$type}{ $single ? 'SingleLeftLegend' : 'DoubleLeftLegend' };
+        my $bottom =
+          $FontMap{$type}{ $single
+            ? 'SingleBottomLegend'
+            : 'DoubleBottomLegend' };
 
-        for (1..8) {
-            substr($board[$_],0,1) = substr($left,$_ - 1,1);
+        for ( 1 .. 8 ) {
+            substr( $board[$_], 0, 1 ) = substr( $left, $_ - 1, 1 );
         }
-        substr($board[-1],1,8) = $bottom;
+        substr( $board[-1], 1, 8 ) = $bottom;
 
     }
     return @board;
 }
 
 sub mappiece {
-    my $x = shift;
-    my $y = shift;
-    my $piece = shift;
+    my $x         = shift;
+    my $y         = shift;
+    my $piece     = shift;
     my $ifonblack = shift;
     my $ifonwhite = shift;
-    my $onwhite = $onwhite[($y * 8) + $x];
-    my $which = index('pnbrqkPNBRQK_',$piece);
+    my $onwhite   = $onwhite[ ( $y * 8 ) + $x ];
+    my $which     = index( 'pnbrqkPNBRQK_', $piece );
 
-    return substr($onwhite ? $ifonwhite : $ifonblack,$which,1);
+    return substr( $onwhite ? $ifonwhite : $ifonblack, $which, 1 );
 }
 
 sub epdgetboard {
@@ -494,7 +529,7 @@ sub epdgetboard {
 
 sub epdlist {
     my @moves = @_;
-    my $debug = ($moves[-1] eq '1');
+    my $debug = ( $moves[-1] eq '1' );
     my @epdlist;
     my $lineno = 1;
 
@@ -519,15 +554,15 @@ sub epdlist {
                 $lineno++;
                 if ($piece) {
                     print ", piece='$piece'";
-                    print ", to='$to'" if $to;
-                    print ", from='$from'" if $from;
+                    print ", to='$to'"               if $to;
+                    print ", from='$from'"           if $from;
                     print ", promotion='$promotion'" if $promotion;
                 }
                 print "\n";
             }
 
             if ( $piece eq "P" ) {
-                $piece     = "p" if not $w;
+                $piece = "p" if not $w;
                 $promotion = lc($promotion) if $promotion and not $w;
                 if ($from) {
                     $from .= substr( $to, 1, 1 );
@@ -566,8 +601,8 @@ sub epdlist {
                         $board{$enpassant} = undef;
                         if ($debug) {
                             print "\$enpassant='$enpassant' " if $enpassant;
-                            print "\$from='$from' " if $from;
-                            print "\$to='$to'" if $to;
+                            print "\$from='$from' "           if $from;
+                            print "\$to='$to'"                if $to;
                             print "\n";
                         }
                     }
@@ -575,12 +610,12 @@ sub epdlist {
                 ( $board{$to}, $board{$from} ) =
                   ( $promotion ? $promotion : $board{$from}, undef );
                 if ($debug) {
-                    print "\$piece='$piece' " if $piece;
-                    print "\$from='$from' " if $from;
-                    print "\$to='$to' " if $to;
+                    print "\$piece='$piece' "         if $piece;
+                    print "\$from='$from' "           if $from;
+                    print "\$to='$to' "               if $to;
                     print "\$promotion='$promotion' " if $promotion;
                 }
-                push ( @epdlist, epd( $w, $Kc, $Qc, $kc, $qc, $ep, %board ) );
+                push( @epdlist, epd( $w, $Kc, $Qc, $kc, $qc, $ep, %board ) );
                 if ($debug) {
                     print "$epdlist[-1]\n";
                 }
@@ -598,9 +633,10 @@ sub epdlist {
                     $kc = $qc = 0;
                 }
                 if ($debug) {
-                    print $w ? "White" : "Black", " castles from $k_from to $k_to\n";
+                    print $w ? "White" : "Black",
+                      " castles from $k_from to $k_to\n";
                 }
-                push ( @epdlist, epd( $w, $Kc, $Qc, $kc, $qc, $ep, %board ) );
+                push( @epdlist, epd( $w, $Kc, $Qc, $kc, $qc, $ep, %board ) );
                 if ($debug) {
                     print "$epdlist[-1]\n";
                 }
@@ -612,24 +648,25 @@ sub epdlist {
                 $piece = lc($piece) if not $w;
                 @piece_at = psquares( $piece, %board );
                 if ($debug) {
-                    print "\@piece_at=", join ( ",", @piece_at ), "\n" if @piece_at;
+                    print "\@piece_at=", join( ",", @piece_at ), "\n"
+                      if @piece_at;
                 }
                 if ($from) {
                     my @tmp;
-                    
+
                     if ($debug) {
                         print "\$from='$from'\n" if $from;
                     }
                     if ( $from =~ /[a-h]/ ) {
                         for (@piece_at) {
-                            push ( @tmp, $_ )
+                            push( @tmp, $_ )
                               if ( substr( $_, 0, 1 ) eq $from );
                         }
                     }
                     else {
 
                         for (@piece_at) {
-                            push ( @tmp, $_ )
+                            push( @tmp, $_ )
                               if ( substr( $_, 1, 1 ) eq $from );
                         }
                     }
@@ -638,16 +675,19 @@ sub epdlist {
 
                 for my $square (@piece_at) {
                     for ( @{ $move_table{ uc($piece) }{$square} } ) {
-                        push ( @fromlist, $square ) if $_ eq $to;
+                        push( @fromlist, $square ) if $_ eq $to;
                     }
                 }
-                print "scalar \@fromlist = ",scalar(@fromlist),"\n" if $debug;
+                print "scalar \@fromlist = ", scalar(@fromlist), "\n" if $debug;
                 if ( scalar(@fromlist) != 1 ) {
                     if ($debug) {
-                        print "\@fromlist=", join ( ",", @fromlist ),"\n" if @fromlist;
+                        print "\@fromlist=", join( ",", @fromlist ), "\n"
+                          if @fromlist;
                     }
                     for (@fromlist) {
-                        if ( canmove( $piece, $to, $_, %board ) and isLegal($w,$_,$to,%board)) {
+                        if (    canmove( $piece, $to, $_, %board )
+                            and isLegal( $w, $_, $to, %board ) )
+                        {
                             $from = $_;
                             last;
                         }
@@ -656,16 +696,16 @@ sub epdlist {
                 else {
                     $from = $fromlist[0];
                 }
-                if ($piece =~ /[RrKk]/) {
-                    if ($piece eq 'R') {
+                if ( $piece =~ /[RrKk]/ ) {
+                    if ( $piece eq 'R' ) {
                         $Kc = 0 if $from eq 'h1';
                         $Qc = 0 if $from eq 'a1';
                     }
-                    elsif ($piece eq 'r') {
+                    elsif ( $piece eq 'r' ) {
                         $kc = 0 if $from eq 'h8';
                         $qc = 0 if $from eq 'a8';
                     }
-                    elsif ($piece eq 'K') {
+                    elsif ( $piece eq 'K' ) {
                         $Kc = $Qc = 0;
                     }
                     else {
@@ -674,16 +714,17 @@ sub epdlist {
                 }
                 ( $board{$to}, $board{$from} ) = ( $board{$from}, undef );
                 if ($debug) {
-                    print "\@piece_at=", join ( ",", @piece_at ), "\n" if @piece_at;
+                    print "\@piece_at=", join( ",", @piece_at ), "\n"
+                      if @piece_at;
                     print "\$piece='$piece' " if $piece;
-                    print "\$from='$from' " if $from;
-                    print "\$to='$to' " if $to;
+                    print "\$from='$from' "   if $from;
+                    print "\$to='$to' "       if $to;
                 }
-                push ( @epdlist, epd( $w, $Kc, $Qc, $kc, $qc, $ep, %board ) );
+                push( @epdlist, epd( $w, $Kc, $Qc, $kc, $qc, $ep, %board ) );
                 if ($debug) {
                     print "$epdlist[-1]\n";
                 }
-                if (not $from) {
+                if ( not $from ) {
                     ShowPieces(%board);
                     Print(%board);
                     die "From undefined\n" if not $from;
@@ -697,29 +738,29 @@ sub epdlist {
 }
 
 sub isLegal {
-    my ($w,$from,$to,%board) = @_;
+    my ( $w, $from, $to, %board ) = @_;
     my %board_copy = %board;
     my $kings_square;
     my @attack_list;
 
     ( $board_copy{$to}, $board_copy{$from} ) = ( $board_copy{$from}, undef );
     my $findking = $w ? 'K' : 'k';
-    for (keys %board_copy) {
-        if ($board_copy{$_} and ($board_copy{$_} eq $findking)) {
+    for ( keys %board_copy ) {
+        if ( $board_copy{$_} and ( $board_copy{$_} eq $findking ) ) {
             $kings_square = $_;
             last;
         }
     }
     my $mask = $w ? 'qrnbp' : 'QRNBP';
-    for my $square (keys %board_copy) {
-        if ($board_copy{$square} and $mask =~ /$board_copy{$square}/) {
-            for ( @{ $move_table{ uc($board_copy{$square}) }{$square} } ) {
-                push ( @attack_list, $square ) if $_ eq $kings_square;
+    for my $square ( keys %board_copy ) {
+        if ( $board_copy{$square} and $mask =~ /$board_copy{$square}/ ) {
+            for ( @{ $move_table{ uc( $board_copy{$square} ) }{$square} } ) {
+                push( @attack_list, $square ) if $_ eq $kings_square;
             }
         }
     }
     for (@attack_list) {
-        if (canmove( $board_copy{$_}, $kings_square, $_, %board_copy )) {
+        if ( canmove( $board_copy{$_}, $kings_square, $_, %board_copy ) ) {
             return 0;
         }
     }
@@ -729,21 +770,21 @@ sub isLegal {
 sub ShowPieces {
     my %board = @_;
 
-    for my $square (keys %board) {
+    for my $square ( keys %board ) {
         my $piece = $board{$square};
         next unless $piece;
-        print "'$square' == ",$piece,"\n";
+        print "'$square' == ", $piece, "\n";
     }
 }
 
 sub Print {
-    my (%board) = @_;
+    my (%board)     = @_;
     my $whitesquare = 1;
-    my @rows = (
-                 [qw(a8 b8 c8 d8 e8 f8 g8 h8)], [qw(a7 b7 c7 d7 e7 f7 g7 h7)],
-                 [qw(a6 b6 c6 d6 e6 f6 g6 h6)], [qw(a5 b5 c5 d5 e5 f5 g5 h5)],
-                 [qw(a4 b4 c4 d4 e4 f4 g4 h4)], [qw(a3 b3 c3 d3 e3 f3 g3 h3)],
-                 [qw(a2 b2 c2 d2 e2 f2 g2 h2)], [qw(a1 b1 c1 d1 e1 f1 g1 h1)]
+    my @rows        = (
+        [qw(a8 b8 c8 d8 e8 f8 g8 h8)], [qw(a7 b7 c7 d7 e7 f7 g7 h7)],
+        [qw(a6 b6 c6 d6 e6 f6 g6 h6)], [qw(a5 b5 c5 d5 e5 f5 g5 h5)],
+        [qw(a4 b4 c4 d4 e4 f4 g4 h4)], [qw(a3 b3 c3 d3 e3 f3 g3 h3)],
+        [qw(a2 b2 c2 d2 e2 f2 g2 h2)], [qw(a1 b1 c1 d1 e1 f1 g1 h1)]
     );
 
     for ( 0 .. 7 ) {
@@ -794,7 +835,7 @@ sub movetype {
         }
         @result = ( "KR", $to, $from );
     }
-    elsif ($move =~ /^([2-7])([a-h][1-8])(?:\+|\#)?$/ ) {
+    elsif ( $move =~ /^([2-7])([a-h][1-8])(?:\+|\#)?$/ ) {
         @result = ( "P", $2 );
     }
     elsif ( $move =~ /^([a-h][1-8])(?:\+|\#)?$/ ) {
@@ -830,17 +871,17 @@ sub movetype {
 sub psquares {
     my ( $piece, %board ) = @_;
 
-    grep {$_ and $board{$_} and ($board{$_} eq $piece)} keys %board;
+    grep { $_ and $board{$_} and ( $board{$_} eq $piece ) } keys %board;
 }
 
 sub epd {
     my ( $w, $Kc, $Qc, $kc, $qc, $ep, %board ) = @_;
     my @key = qw(
-      a8 b8 c8 d8 e8 f8 g8 h8 
-      a7 b7 c7 d7 e7 f7 g7 h7 
+      a8 b8 c8 d8 e8 f8 g8 h8
+      a7 b7 c7 d7 e7 f7 g7 h7
       a6 b6 c6 d6 e6 f6 g6 h6
       a5 b5 c5 d5 e5 f5 g5 h5
-      a4 b4 c4 d4 e4 f4 g4 h4 
+      a4 b4 c4 d4 e4 f4 g4 h4
       a3 b3 c3 d3 e3 f3 g3 h3
       a2 b2 c2 d2 e2 f2 g2 h2
       a1 b1 c1 d1 e1 f1 g1 h1
@@ -849,7 +890,7 @@ sub epd {
     my $piece;
     my $epd;
 
-    for ( 0..63) {
+    for ( 0 .. 63 ) {
         if ( $_ and ( $_ % 8 ) == 0 ) {
             if ($n) {
                 $epd .= "$n";
@@ -871,8 +912,8 @@ sub epd {
         }
     }
 
-    $epd .= "$n" if  $n;
-    $epd .= ($w ? " b" : " w");
+    $epd .= "$n" if $n;
+    $epd .= ( $w ? " b" : " w" );
 
     if ( $Kc or $Qc or $kc or $qc ) {
         $epd .= " ";
@@ -889,7 +930,7 @@ sub epd {
 }
 
 sub canmove {
-    my ( $piece, $to, $from, %board) = @_;
+    my ( $piece, $to, $from, %board ) = @_;
     my $lto;
     my $rto;
     my $lfrom;
@@ -901,21 +942,21 @@ sub canmove {
     my $c       = 0;
 
     $to =~ /(.)(.)/;
-    ($lto,$rto) = ($1,$2);
+    ( $lto, $rto ) = ( $1, $2 );
     $from =~ /(.)(.)/;
-    ($lfrom,$rfrom) = ($1,$2);
+    ( $lfrom, $rfrom ) = ( $1, $2 );
 
-    if ($board{$from} and $board{to}) {
-        if (defined($board{$from}) and defined($board{$to})) {
-            if ($board{$from}->color() == $board{$to}->color()) {
+    if ( $board{$from} and $board{to} ) {
+        if ( defined( $board{$from} ) and defined( $board{$to} ) ) {
+            if ( $board{$from}->color() == $board{$to}->color() ) {
                 $result = 0;
             }
         }
     }
     elsif ( ( $rto eq $rfrom ) or ( $lto eq $lfrom ) ) {
 
-        if ( ( $rto eq $rfrom and $lto lt $lfrom )
-             or ( $lto eq $lfrom and $rto lt $rfrom ) )
+        if (   ( $rto eq $rfrom and $lto lt $lfrom )
+            or ( $lto eq $lfrom and $rto lt $rfrom ) )
         {
             $offset = -1;
         }
@@ -926,7 +967,7 @@ sub canmove {
         while ( $from ne $to ) {
             substr( $from, $c, 1 ) =
               chr( ord( substr( $from, $c, 1 ) ) + $offset );
-            if ( defined($board{$from}) ) {
+            if ( defined( $board{$from} ) ) {
                 $result = 0 if ( $from ne $to );
                 last;
             }
@@ -945,7 +986,7 @@ sub canmove {
               chr( ord( substr( $from, 0, 1 ) ) + $loffset );
             substr( $from, 1, 1 ) =
               chr( ord( substr( $from, 1, 1 ) ) + $roffset );
-            if ( defined($board{$from}) ) {
+            if ( defined( $board{$from} ) ) {
                 $result = 0 if ( $from ne $to );
                 last;
             }
@@ -953,7 +994,6 @@ sub canmove {
     }
     return $result;
 }
-
 
 1;
 __END__
@@ -1554,6 +1594,6 @@ B<I<Hugh S. Myers>>
 
 =over
 
-=item Always: hsmyers@sdragons.com
+=item Always: hsmyers@gmail.com
 
 =back

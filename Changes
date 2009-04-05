@@ -83,3 +83,6 @@ Revision history for Perl extension Chess::PGN::EPD.
         - Patch problem with XP and forward slashes blocking database loading
 	- Patch problem with hashes that generates warnings (code will be depricated as well, so fix
 	  is needed!)
+0.24  Sun Apr 05 14:40:00 2009
+	- Repatch patch above-- had nothing to do with XP, had to do with reliably finding database files!
+	- Found another hashref deprication and fixed.
