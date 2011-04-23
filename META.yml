@@ -1,14 +1,29 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Chess-PGN-EPD
-version:      0.24
-version_from: EPD.pm
-installdirs:  site
+--- #YAML:1.0
+name:               Chess-PGN-EPD
+version:            0.25
+abstract:           Perl extension to produce and manipulate EPD text.
+author:
+    - Hugh S. Myers <hsmyers@gmail.com>
+license:            unknown
+distribution_type:  module
+configure_requires:
+    ExtUtils::MakeMaker:  0
+build_requires:
+    ExtUtils::MakeMaker:  0
 requires:
-    Chess::PGN::Moves:             0.03
-    DB_File:                       1.73
-    Test:                          1.15
-    Text::CSV:                     0.01
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.30
+    Chess::PGN::Moves:    0.04
+    Chess::PGN::Parse:    0.19
+    Cwd:                  3.31
+    File::Spec::Functions:  3.3
+    Storable:             2.21
+    Test::More:           0.94
+    Text::CSV:            1.18
+    Try::Tiny:            0.06
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.55_02
+meta-spec:
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4

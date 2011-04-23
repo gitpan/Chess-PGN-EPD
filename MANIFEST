@@ -3,9 +3,21 @@ Changes
 EPD.pm
 MANIFEST
 README
-test.pl
 CSV/ECO.txt
 CSV/NIC.txt
 CSV/Opening.txt
 scripts/db.pl
+t/01_epdcode.t
+t/02_Storable.t
+t/03_epdlist.t
+t/04_epdstr.t
+t/05_list-str.t
+t/06_epdgetboard.t
+t/07_psquares.t
+t/08_epdset.t
+sample/readme.txt
+sample/sample1.pl
+sample/sample2.pl
+sample/sample3.pl
+sample/sample.pgn
 META.yml                                 Module meta-data (added by MakeMaker)

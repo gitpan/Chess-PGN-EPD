@@ -86,3 +86,13 @@ Revision history for Perl extension Chess::PGN::EPD.
 0.24  Sun Apr 05 14:40:00 2009
 	- Repatch patch above-- had nothing to do with XP, had to do with reliably finding database files!
 	- Found another hashref deprication and fixed.
+0.25  Sat Oct 02 04:27:21 2010
+        - drop usage of 'use DB_File' moving to 'use Storable' instead
+	- clean up code to avoid 'Deprecated' messages
+	- clean up code using PerlCritic level 4
+	- extend tests
+	- add sample code
+	- slight improvement to pod
+	- add epdfromto for telegraphic style from-to notation
+	- remove debug output from epdlist
+	- add epdTaxonomy to simplify ECO, NIC and Opening tag generation

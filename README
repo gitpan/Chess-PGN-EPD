@@ -1,4 +1,4 @@
-Chess/PGN/EPD version 0.22
+Chess/PGN/EPD version 0.23
 ==========================
 
 CHESS::PGN::EPD - Perl extension to produce and manipulate EPD text.
@@ -12,24 +12,64 @@ To install this module type the following:
    make test
    make install
 
+To install this module under Windows type the following:
+
+   perl Makefile.PL
+   nmake
+   nmake test
+   nmake install
+
+NOTE: case is optional in Windows
+NOTE: if completely installed using assoc and ftype then you can type the following:
+
+   makefile
+   nmake
+   nmake test
+   nmake install
+
+Note: if you haven't installed using assoc and ftype then type the following:
+
+   help ftype
+
+for instructions. You may find the example to be in error, a matter of where to
+put quotes and such. From a dos box:
+
+C:\>assoc .pl
+.pl=Perl
+
+C:\>ftype Perl
+Perl="C:\Perl\bin\perl.exe" "%1" %*
+
+This works for Windows from W2k through Vista.
+
 DOCUMENTATION
 
-Available using various Pod Mods(tm) from source: epd.pm.
+Available using various Pod Mods(tm) from source: epd.pm. Type:
+
+   perldoc Chess::PGN::EPD
 
 DEPENDENCIES
 
-This module requires these other modules and libraries:
+This module requires these other modules:
 
 Chess::PGN::Moves
-Chess::PGN::Parse (useless without, not actually required though...)
-DB_File
-Test
+Chess::PGN::Parse
+Cwd
+File::Spec::Functions
+Storable
+Test::More
 Text::CSV
+Try::Tiny
 
+Note: The versions found in the Makefile.PL are the current versions off of
+my development machine. To tell the truth, I'm not entirely sure that 'most current'
+is really needed. If you have problems, experiment!
+
+Chess::PGN::Parse (useless without, not actually required though...)
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2003 Hugh S. Myers
+Copyright (C) 2010 Hugh S. Myers
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

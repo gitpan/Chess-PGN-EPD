@@ -1,8 +1,7 @@
-#
-# test.pl -- test script for Chess::PGN::EPD
-use Test;
-BEGIN { plan tests => 8 };
-use Chess::PGN::EPD;
+#!/usr/bin/perl
+# 01_epdcode.t -- test epdcode.
+use Test::More tests => 7;
+use Chess::PGN::EPD qw( epdlist epdcode );
 
 ok(1); # 1. If we made it this far, we're ok.
 
@@ -25,13 +24,12 @@ Ne6 Nf3 Rd8 Be3 Qe4
 @epd1 = reverse epdlist( @moves1 );
 @epd2 = reverse epdlist( @moves2 );
 
-ok(ECO(\@epd1),'C00'); # 2.
-ok(NIC(\@epd1),'FR 1'); # 3.
-ok(Opening(\@epd1),'French: Labourdonnais variation'); # 4.
-ok(Knight()); # 5.
-ok(ECO(\@epd2),'E44'); # 6.
-ok(NIC(\@epd2),'NI 13'); # 7.
-ok(Opening(\@epd2),'Nimzo-Indian: Fischer variation, 5.Ne2'); # 8.
+is(ECO(\@epd1),'C00','ECO lookup #1'); # 2.
+is(NIC(\@epd1),'FR 1','NIC lookup #1'); # 3.
+is(Opening(\@epd1),'French: Labourdonnais variation','Opening lookup #1'); # 4.
+is(ECO(\@epd2),'E44','ECO lookup #2'); # 5.
+is(NIC(\@epd2),'NI 13','NIC lookup #2'); # 6.
+is(Opening(\@epd2),'Nimzo-Indian: Fischer variation, 5.Ne2'); # 7.
 
 sub ECO {
     my $movesref = shift;
@@ -49,10 +47,4 @@ sub Opening {
     my $movesref = shift;
 
     return epdcode('Opening',$movesref);
-}
-
-sub Knight {
-    my @epd = epdlist(qw(e4 c5 f4 Nf6 Nc3 d5 e5 d4 exf6 dxc3 fxg7 cxd2));
-
-    return 1;
 }
