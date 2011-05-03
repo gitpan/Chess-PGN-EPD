@@ -96,3 +96,5 @@ Revision history for Perl extension Chess::PGN::EPD.
 	- add epdfromto for telegraphic style from-to notation
 	- remove debug output from epdlist
 	- add epdTaxonomy to simplify ECO, NIC and Opening tag generation
+0.26 Tue May 03 03:04:40 2011
+        - apply patch so that module passes test code in Linux

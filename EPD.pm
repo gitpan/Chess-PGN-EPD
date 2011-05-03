@@ -28,7 +28,7 @@ my $module_dir_qfn = realpath($mod);
 my $db_dir_qfn     = catdir($module_dir_qfn, 'db');
 
 unless (-d $db_dir_qfn) {
-    $db_dir_qfn = realpath('.\db');
+    $db_dir_qfn = realpath('db');
 }
 
 my $ECO_path     = catdir($db_dir_qfn,'ECO.stor');
@@ -66,7 +66,7 @@ our @EXPORT = qw(
   &psquares
   %font2map
 );
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 our %font2map = (
     'Chess Cases'           => 'leschemelle',
