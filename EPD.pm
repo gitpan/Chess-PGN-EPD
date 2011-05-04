@@ -1,12 +1,11 @@
 package Chess::PGN::EPD;
 
-use feature ':5.10';
 use strict;
 use warnings;
 use Chess::PGN::Moves;
+use File::Spec::Functions;
 use Storable              qw( retrieve );
 use Cwd                   qw( realpath );
-use File::Spec::Functions qw( catdir );
 use Try::Tiny             qw( try catch );
 
 require Exporter;
@@ -18,14 +17,7 @@ my %hash = (
     Opening => \$hOpening
 );
 
-my $mod = __PACKAGE__;
-$mod =~ s{::}{/}g;
-$mod .= '.pm';
-$mod = $INC{$mod};
-$mod =~ s/EPD\.pm//i;
-
-my $module_dir_qfn = realpath($mod);
-my $db_dir_qfn     = catdir($module_dir_qfn, 'db');
+my $db_dir_qfn = realpath( catfile( __PACKAGE__, updir(), 'db' ) );
 
 unless (-d $db_dir_qfn) {
     $db_dir_qfn = realpath('db');
@@ -66,7 +58,7 @@ our @EXPORT = qw(
   &psquares
   %font2map
 );
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 our %font2map = (
     'Chess Cases'           => 'leschemelle',
@@ -1209,10 +1201,16 @@ sub epdTaxonomy {
         $opening = epdcode('Opening',\@epd);
     }
     else {
-        given (lc (keys %options)) {
-            when ('eco') {$eco = epdcode('ECO',\@epd)}
-            when ('nic') {$nic = epdcode('NIC',\@epd)}
-            when ('opening') {$opening = epdcode('Opening',\@epd)}
+        for (lc (keys %options)) {
+            if ($_ eq 'eco') {
+                $eco = epdcode('ECO',\@epd);
+            }
+            elsif ($_ eq 'nic') {
+                $nic = epdcode('NIC',\@epd);
+            }
+            elsif ($_ eq 'Opening') {
+                $opening = epdcode('Opening',\@epd);
+            }
         }
     }
     if ($options{'astags'}) {

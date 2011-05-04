@@ -98,3 +98,7 @@ Revision history for Perl extension Chess::PGN::EPD.
 	- add epdTaxonomy to simplify ECO, NIC and Opening tag generation
 0.26 Tue May 03 03:04:40 2011
         - apply patch so that module passes test code in Linux
+0.27 Tue May 03 05:14:59 2011
+        - add test for epdTaxonomy
+        - remove use feature ':5.10';
+        - rewrite epdTaxonomy to not use given/when

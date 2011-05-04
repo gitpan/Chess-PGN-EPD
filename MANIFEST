@@ -15,6 +15,7 @@ t/05_list-str.t
 t/06_epdgetboard.t
 t/07_psquares.t
 t/08_epdset.t
+t/09_epdTaxonomy.t
 sample/readme.txt
 sample/sample1.pl
 sample/sample2.pl

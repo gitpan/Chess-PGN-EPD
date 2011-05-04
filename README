@@ -1,4 +1,4 @@
-Chess/PGN/EPD version 0.26
+Chess/PGN/EPD version 0.27
 ==========================
 
 CHESS::PGN::EPD - Perl extension to produce and manipulate EPD text.
