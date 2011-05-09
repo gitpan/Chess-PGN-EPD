@@ -102,3 +102,5 @@ Revision history for Perl extension Chess::PGN::EPD.
         - add test for epdTaxonomy
         - remove use feature ':5.10';
         - rewrite epdTaxonomy to not use given/when
+0.28 Sun May 08 12:35:48 2011
+        - continue to stamp out 5.10 features; this time '//'

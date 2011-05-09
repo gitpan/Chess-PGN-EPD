@@ -58,7 +58,7 @@ our @EXPORT = qw(
   &psquares
   %font2map
 );
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 
 our %font2map = (
     'Chess Cases'           => 'leschemelle',
@@ -602,17 +602,17 @@ sub epdfromto {
                               chr( ord( substr( $enpassant, 1, 1 ) ) + 1 );
                         }
                         $board{$enpassant} = undef;
-                        $enpassant = $enpassant // '';
-                        $from = $from // '';
-                        $to = $to // '';
+                        $enpassant = defined($enpassant) ? $enpassant : '';
+                        $from = defined($from) ? $from : '';
+                        $to = defined($to) ? $to : '';
                     }
                 }
                 ( $board{$to}, $board{$from} ) =
                   ( $promotion ? $promotion : $board{$from}, undef );
-                $piece = $piece // '';
-                $from = $from // '';
-                $to = $to // '';
-                $promotion = $promotion // '';
+                $piece = defined($piece) ? $piece : '';
+                $from = defined($from) ? $from : '';
+                $to = defined($to) ? $to : '';
+                $promotion = defined($promotion) ? $promotion : '';
             }
             elsif ( $piece eq "KR" ) {
                 my ( $k_from, $r_from ) = unpack( "A2A2", $from );
@@ -636,7 +636,7 @@ sub epdfromto {
                 if ($from) {
                     my @tmp;
 
-                    $from = $from // '';
+                    $from = defined($from) ? $from : '';
                     if ( $from =~ /[a-h]/ ) {
                         for (@piece_at) {
                             push( @tmp, $_ )
@@ -688,17 +688,17 @@ sub epdfromto {
                     }
                 }
                 ( $board{$to}, $board{$from} ) = ( $board{$from}, undef );
-                $piece = $piece // '';
-                $from = $from // '';
-                $to = $to // '';
+                $piece = defined($piece) ? $piece : '';
+                $from = defined($from) ? $from : '';
+                $to = defined($to) ? $to : '';
             }
             my $movehash = {
-                    piece => $piece // '',
-                    from => $from // '',
-                    to => $to // '',
-                    promotion => $promotion // '',
-                    enpassant => $enpassant // '',
-                    castles => $castles // '',
+                    piece => defined($piece) ? $piece : '',
+                    from => defined($from) ? $from : '',
+                    to => defined($to) ? $to : '',
+                    promotion => defined($promotion) ? $promotion : '',
+                    enpassant => defined($enpassant) ? $enpassant : '',
+                    castles => defined($castles) ? $castles : '',
             };
             push(@movelist,$movehash);
             $w ^= 1;
