@@ -10,9 +10,9 @@ use Test::More tests => 7;
 ok(1);    # load failure check...
 
 my @answers = ( 
-    'g1 b1', 
-    'g1 b1', 
-    'f3 b1', 
+    'b1 g1', 
+    'b1 g1', 
+    'b1 f3', 
     'b8 g8',
     'b8 g8',
     'b8 g8',

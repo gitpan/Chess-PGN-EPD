@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Chess-PGN-EPD
-version:            0.28
+version:            0.29
 abstract:           Perl extension to produce and manipulate EPD text.
 author:
     - Hugh S. Myers <hsmyers@gmail.com>

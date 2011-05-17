@@ -3,10 +3,9 @@ package Chess::PGN::EPD;
 use strict;
 use warnings;
 use Chess::PGN::Moves;
-use File::Spec::Functions;
-use Storable              qw( retrieve );
-use Cwd                   qw( realpath );
-use Try::Tiny             qw( try catch );
+use File::Spec::Functions  qw(  catdir );
+use Storable               qw( retrieve );
+use Try::Tiny              qw( try catch );
 
 require Exporter;
 
@@ -17,15 +16,9 @@ my %hash = (
     Opening => \$hOpening
 );
 
-my $db_dir_qfn = realpath( catfile( __PACKAGE__, updir(), 'db' ) );
-
-unless (-d $db_dir_qfn) {
-    $db_dir_qfn = realpath('db');
-}
-
-my $ECO_path     = catdir($db_dir_qfn,'ECO.stor');
-my $NIC_path     = catdir($db_dir_qfn,'NIC.stor');
-my $Opening_path = catdir($db_dir_qfn,'Opening.stor');
+my $ECO_path     = catdir('db','ECO.stor');
+my $NIC_path     = catdir('db','NIC.stor');
+my $Opening_path = catdir('db','Opening.stor');
 
 try {
     $hECO = retrieve($ECO_path);
@@ -58,7 +51,7 @@ our @EXPORT = qw(
   &psquares
   %font2map
 );
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 our %font2map = (
     'Chess Cases'           => 'leschemelle',
@@ -751,6 +744,7 @@ sub epdlist {
                         substr( $from, 1, 1 ) -= 1;
                     }
                     else {
+
                         $from++;
                     }
                 }
@@ -1064,7 +1058,7 @@ sub movetype {
 sub psquares {
     my ( $piece, %board ) = @_;
 
-    return grep { $_ and $board{$_} and ( $board{$_} eq $piece ) } keys %board;
+    return grep { $_ and $board{$_} and ( $board{$_} eq $piece ) } sort keys %board;
 }
 
 sub epd {

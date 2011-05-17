@@ -10,9 +10,9 @@ use Test::More tests => 4;
 ok(1);    # load failure check...
 
 my @answers = ( 
-    'g1 b1', 
-    'g1 b1', 
-    'f3 b1', 
+    'b1 g1', 
+    'b1 g1', 
+    'b1 f3', 
 );
 my @epd = (
     'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3',
