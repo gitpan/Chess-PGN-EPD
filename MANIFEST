@@ -16,6 +16,7 @@ t/06_epdgetboard.t
 t/07_psquares.t
 t/08_epdset.t
 t/09_epdTaxonomy.t
+t/10_ludens.t
 sample/readme.txt
 sample/sample1.pl
 sample/sample2.pl

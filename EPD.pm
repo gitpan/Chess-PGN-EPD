@@ -51,7 +51,7 @@ our @EXPORT = qw(
   &psquares
   %font2map
 );
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 our %font2map = (
     'Chess Cases'           => 'leschemelle',
@@ -703,11 +703,12 @@ sub epdfromto {
 
 sub epdlist {
     my @moves = @_;
-    my $debug = ( $moves[-1] eq '1' );
+    my $debug = 0;
     my @epdlist;
     my $lineno = 1;
 
-    if ($debug) {
+    if ( scalar @moves and $moves[-1] eq '1' ) {
+        $debug = 1;
         pop @moves;
         if (%board) {
             print "\%board initialized\n";
@@ -1045,6 +1046,9 @@ sub movetype {
     }
     elsif ( $move =~ /^([RNBQK])([a-h]|[1-8])([a-h][1-8])(?:\+|\#)?$/ ) {
         @result = ( $1, $3, $2 );
+    }
+    elsif ( $move =~ /^([RNBQK])([a-h][1-8])([a-h][1-8])(?:\+|\#)?$/ ) {
+      @result = ( $1, $3, $2 );
     }
     elsif ( $move =~ /^([RNBQK])([a-h]|[1-8])x([a-h][1-8])(?:\+|\#)?$/ ) {
         @result = ( $1, $3, $2 );

@@ -108,3 +108,8 @@ Revision history for Perl extension Chess::PGN::EPD.
         - fix warnings found in test under 5.8.1 Linux
         - fix errors in t\07_psquares.t under 5.8.1 Linux
         - fix errors in t\08_epdset.t under 5.8.1 Linux
+0.30  Thu Jun 30 08:55:22 2011
+        - fix two errors spotted by user Klaus Ludens
+        - add typing filter for rare move case
+        - add new logic for setting $debug in epdlist
+        - add new test: 10_ludens.t to insure regression
