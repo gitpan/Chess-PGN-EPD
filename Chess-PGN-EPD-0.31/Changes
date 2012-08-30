@@ -113,3 +113,6 @@ Revision history for Perl extension Chess::PGN::EPD.
         - add typing filter for rare move case
         - add new logic for setting $debug in epdlist
         - add new test: 10_ludens.t to insure regression
+0.31  Wed Aug 29 06:01:39 2012
+        - change method for finding databases to something hopefully cross platform
+        - Add code from Klaus Ludens to allow for castling bug---generated wrong fen/EPD

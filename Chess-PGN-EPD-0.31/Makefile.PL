@@ -14,7 +14,6 @@ WriteMakefile(
         Text::CSV             => 1.18,
         Storable              => 2.21,
         Cwd                   => 3.31,
-        File::Spec::Functions => 3.3,
         Try::Tiny             => 0.06
     },                                     # e.g., Module::Name => 1.1
     (

@@ -3,7 +3,6 @@ package Chess::PGN::EPD;
 use strict;
 use warnings;
 use Chess::PGN::Moves;
-use File::Spec::Functions  qw(  catdir );
 use Storable               qw( retrieve );
 use Try::Tiny              qw( try catch );
 
@@ -16,9 +15,11 @@ my %hash = (
     Opening => \$hOpening
 );
 
-my $ECO_path     = catdir('db','ECO.stor');
-my $NIC_path     = catdir('db','NIC.stor');
-my $Opening_path = catdir('db','Opening.stor');
+my $ECO_path;
+my $NIC_path;
+my $Opening_path;
+
+($ECO_path,$NIC_path,$Opening_path) = GetPaths('Chess::PGN::EPD');
 
 try {
     $hECO = retrieve($ECO_path);
@@ -51,7 +52,7 @@ our @EXPORT = qw(
   &psquares
   %font2map
 );
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 our %font2map = (
     'Chess Cases'           => 'leschemelle',
@@ -459,7 +460,8 @@ sub epdstr {
         for ( 0 .. 7 ) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
             $array[$_] =~
-s/([pnbrqkPNBRQK_])/mappiece(pos $array[$_],$_,$1,"\341\345\351\355\361\365\337\343\347\353\357\363\335","\340\344\350\354\360\364\336\342\346\352\356\362\334")/ge;
+s/([pnbrqkPNBRQK_])/mappiece(pos $array[$_],$_,$1,"\341\345\351\355\361\365\337\343\347\353\357\363
+\335","\340\344\350\354\360\364\336\342\346\352\356\362\334")/ge;
             push( @board, $array[$_] );
         }
     }
@@ -468,7 +470,8 @@ s/([pnbrqkPNBRQK_])/mappiece(pos $array[$_],$_,$1,"\341\345\351\355\361\365\337\
         for ( 0 .. 7 ) {
             $array[$_] =~ s/(\d+)/'_' x $1/ge;
             $array[$_] =~
-s/([pnbrqkPNBRQK_])/mappiece(pos $array[$_],$_,$1,$FontMap{$type}{'OnBlack'},$FontMap{$type}{'OnWhite'})/ge;
+s/([pnbrqkPNBRQK_])/mappiece(pos $array[$_],$_,$1,$FontMap{$type}{'OnBlack'},$FontMap{$type}
+{'OnWhite'})/ge;
             substr( $board[ $_ + 1 ], 1, 8 ) = $array[$_];
         }
     }
@@ -551,6 +554,11 @@ sub epdfromto {
             my $enpassant;
             my $ep = '-';
             my $castles = /O/ ? $_ : '';
+
+            $Kc = 0 if $to eq 'h1';
+            $Qc = 0 if $to eq 'a1';
+            $kc = 0 if $to eq 'h8';
+            $qc = 0 if $to eq 'a8';
 
             if ( $piece eq "P" ) {
                 $piece = "p" if not $w;
@@ -724,6 +732,12 @@ sub epdlist {
             my ( $piece, $to, $from, $promotion ) = movetype( $w, $_ );
             my $enpassant;
             my $ep = '-';
+
+            $Kc = 0 if $to eq 'h1';
+            $Qc = 0 if $to eq 'a1';
+            $kc = 0 if $to eq 'h8';
+            $qc = 0 if $to eq 'a8';
+
             if ($debug) {
                 print "Move[$lineno]='$_'";
                 $lineno++;
@@ -1224,6 +1238,28 @@ sub epdTaxonomy {
     return @results;
 }
 
+sub GetPaths {
+    my $module = shift;
+    my $sep;
+    my $dbECO;
+    my $dbNIC;
+    my $dbOpening;
+
+    s/::/\//g, s/$/.pm/ for $module;
+    for (@INC) {
+        if (/(\\|\/)Perl[\\\/]site[\\\/]lib$/i) {
+            $sep = $1;
+            $module = $_ . $sep . $module;
+            last;
+        }
+    }
+    $module =~ s/EPD.pm//;
+    $dbECO = $module . 'db' . $sep . 'ECO.stor';
+    $dbNIC = $module . 'db' . $sep . 'NIC.stor';
+    $dbOpening = $module . 'db' . $sep . 'Opening.stor';
+    return ($dbECO,$dbNIC,$dbOpening);
+}
+
 1;
 __END__
 
@@ -1555,14 +1591,22 @@ A plain ASCII diagram. Typical output:
 An array of HTML information that represents the tabular diagram information for PalView.
 Typical output:
 
-<IMG SRC="jpc/br.gif"><IMG SRC="jpc/bn.gif"><IMG SRC="jpc/bb.gif"><IMG SRC="jpc/bq.gif"><IMG SRC="jpc/bk.gif"><IMG SRC="jpc/bb.gif"><IMG SRC="jpc/bn.gif"><IMG SRC="jpc/br.gif"><BR>
-<IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><BR>
-<IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><BR>
-<IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><BR>
-<IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><BR>
-<IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/wn.gif"><BR>
-<IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><BR>
-<IMG SRC="jpc/wr.gif"><IMG SRC="jpc/wn.gif"><IMG SRC="jpc/wb.gif"><IMG SRC="jpc/wq.gif"><IMG SRC="jpc/wk.gif"><IMG SRC="jpc/wb.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/wr.gif"><BR>
+<IMG SRC="jpc/br.gif"><IMG SRC="jpc/bn.gif"><IMG SRC="jpc/bb.gif"><IMG SRC="jpc/bq.gif"><IMG 
+SRC="jpc/bk.gif"><IMG SRC="jpc/bb.gif"><IMG SRC="jpc/bn.gif"><IMG SRC="jpc/br.gif"><BR>
+<IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG 
+SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><IMG SRC="jpc/bp.gif"><BR>
+<IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG 
+SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><BR>
+<IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG 
+SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><BR>
+<IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG 
+SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><BR>
+<IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG 
+SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/wn.gif"><BR>
+<IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG 
+SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><IMG SRC="jpc/wp.gif"><BR>
+<IMG SRC="jpc/wr.gif"><IMG SRC="jpc/wn.gif"><IMG SRC="jpc/wb.gif"><IMG SRC="jpc/wq.gif"><IMG 
+SRC="jpc/wk.gif"><IMG SRC="jpc/wb.gif"><IMG SRC="jpc/i.gif"><IMG SRC="jpc/wr.gif"><BR>
 
 =item 'latex'
 
@@ -1840,7 +1884,8 @@ piece.
 
 =item epdfromto - given a list of moves, return an array of hashes which contain move information.
 
-=item epdgetboard - given an EPD string setup board and related. Either way return board and related information.
+=item epdgetboard - given an EPD string setup board and related. Either way return board and related 
+information.
 
 =item epdlist - given a list of moves, return a list of EPD strings.
 
@@ -1850,7 +1895,8 @@ piece.
 
 =item epdTaxonomy - one stop shopping for conversion of epd array to ECO, NIC and opening tag information.
 
-=item psquares - given the piece and the board, generate and return a list of squares occupied by that type of piece.
+=item psquares - given the piece and the board, generate and return a list of squares occupied by that 
+type of piece.
 
 =back
 
@@ -1869,8 +1915,6 @@ piece.
 =item Storable              => 2.21
 
 =item Cwd                   => 3.31
-
-=item File::Spec::Functions => 3.3
 
 =back
 

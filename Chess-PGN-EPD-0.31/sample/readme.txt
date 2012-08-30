@@ -1,4 +1,5 @@
-The scripts in this directory are taken directly from the pod documentation of Chess::PGN::EPD and are here to
+The scripts in this directory are taken directly from the
+pod documentation of Chess::PGN::EPD and are here to
 save you a bit of cut and paste.
 
 readme.txt
